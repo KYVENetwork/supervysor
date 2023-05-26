@@ -10,6 +10,8 @@ func startNode() (*os.Process, error) {
 	// TODO: Check if process.id is still running
 	// TODO: Move filled address book, expose seeds
 
+	processIds := make(chan int)
+
 	app := "osmosisd"
 	arg1 := "start"
 
@@ -27,6 +29,8 @@ func startNode() (*os.Process, error) {
 		fmt.Println(err)
 		return nil, err
 	}
+
+	go func() { processIds <- cmd.Process.Pid }()
 
 	err = cmd.Wait()
 	if err != nil {

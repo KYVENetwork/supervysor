@@ -26,6 +26,8 @@ func InitialStart() (int, error) {
 		return 0, err
 	}
 
+	fmt.Println("PROCESS STARTED")
+
 	return process.Pid, nil
 }
 
