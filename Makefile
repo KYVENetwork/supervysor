@@ -1,3 +1,12 @@
+VERSION := dev
+
+ldflags := $(LDFLAGS)
+ldflags += -X main.Version=$(VERSION)
+ldflags := $(strip $(ldflags))
+
+BUILD_FLAGS := -ldflags '$(ldflags)'
+
+.PHONY: format lint build
 all: format lint build
 
 ###############################################################################
@@ -6,12 +15,12 @@ all: format lint build
 
 build:
 	@echo "🤖 Building supervysor..."
-	@go build -mod=readonly -o "$(PWD)/build/" ./cmd/supervysor
+	@go build $(BUILD_FLAGS) -mod=readonly -o "$(PWD)/build/" ./cmd/supervysor
 	@echo "✅ Completed build!"
 
 install:
 	@echo "🤖 Installing supervysor..."
-	@go install -mod=readonly ./cmd/supervysor
+	@go install -mod=readonly $(BUILD_FLAGS)  ./cmd/supervysor
 	@echo "✅ Completed installation!"
 
 ###############################################################################

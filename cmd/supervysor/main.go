@@ -1,9 +1,27 @@
 package main
 
 import (
-	"github.com/KYVENetwork/supervysor/cmd/supervysor/commands"
+	"os"
+
+	"cosmossdk.io/log"
+
+	"github.com/spf13/cobra"
 )
 
+var logger = log.NewLogger(os.Stdout)
+
+var Version = ""
+
+var supervysor = &cobra.Command{
+	Use:     "supervysor",
+	Short:   "Supervysor helps sync a Tendermint node used as a KYVE data source.",
+	Version: Version,
+}
+
 func main() {
-	commands.Execute()
+	supervysor.AddCommand(startCmd)
+
+	if err := supervysor.Execute(); err != nil {
+		os.Exit(1)
+	}
 }
