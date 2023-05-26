@@ -5,9 +5,10 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"syscall"
 )
 
-func startNode(stopChan chan struct{}) (*os.Process, error) {
+func startNode() (*os.Process, error) {
 	// TODO: Check if process.id is still running
 	// TODO: Move filled address book, expose seeds
 
@@ -36,19 +37,18 @@ func startNode(stopChan chan struct{}) (*os.Process, error) {
 			return
 		}
 
-		signalChan := make(chan os.Signal, 1)
-		signal.Notify(signalChan, os.Interrupt)
-
-		select {
-		case <-signalChan:
-			// SIGINT signal received, stop the process
-			cmd.Process.Signal(os.Interrupt)
-		case <-stopChan:
-			// stopChan closed, stop the process
-			cmd.Process.Signal(os.Interrupt)
-		}
-
 		processIDChan <- cmd.Process.Pid
+
+		// Warte auf das Signal Ctrl+C (Interrupt)
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+		<-c
+
+		// Beende den Prozess
+		err = cmd.Process.Signal(os.Interrupt)
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		// Wait for process end
 		err = cmd.Wait()

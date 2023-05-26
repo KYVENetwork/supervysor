@@ -26,23 +26,12 @@ var startCmd = &cobra.Command{
 	Short: "Start supervising node",
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: Start node initially and store process.id
-
-		stopChan := make(chan struct{})
-		defer close(stopChan)
-
-		process, err := node.InitialStart(stopChan)
+		_, err := node.InitialStart()
 		if err != nil {
 			fmt.Print(err.Error())
 			os.Exit(1)
 		}
 		fmt.Println("STARTED INITIALLY.")
-
-		// Beende den Prozess beim Beenden des Programms
-		defer func() {
-			process.Signal(os.Interrupt)
-			process.Wait()
-		}()
-
 		for {
 			nodeHeight := node.GetNodeHeight()
 
