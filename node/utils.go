@@ -32,6 +32,8 @@ func startNode() (*os.Process, error) {
 
 	go func() { processIds <- cmd.Process.Pid }()
 
+	fmt.Println("PROCESS ", <-processIds)
+
 	err = cmd.Wait()
 	if err != nil {
 		fmt.Println(err)
