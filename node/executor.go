@@ -1,20 +1,19 @@
 package node
 
 import (
-	"fmt"
 	"os"
 )
 
 func InitialStart() (int, error) {
-	fmt.Println("Starting initially...")
+	logger.Info("starting initially")
 	process, err := startNode(true)
 	if err != nil {
-		fmt.Print(err.Error())
+		logger.Error(err.Error())
 		os.Exit(1)
 		return 0, err
 	}
 
-	fmt.Println("Initial process started: ", process.Pid)
+	logger.Info("initial process started: %s\n", process.Pid)
 
 	Process.Id = process.Pid
 	Process.GhostMode = false
@@ -24,47 +23,47 @@ func InitialStart() (int, error) {
 
 func EnableGhostMode() {
 	if !Process.GhostMode {
-		fmt.Println("Enabling Ghost Mode...")
+		logger.Info("enabling Ghost Mode")
 		shutdownNode()
 
 		process, err := startGhostNode()
 		if err != nil {
-			fmt.Println("Ghost Mode enabling failed.")
+			logger.Error("Ghost Mode enabling failed", err)
 		} else {
 			if process != nil && process.Pid > 0 {
 				Process.Id = process.Pid
 				Process.GhostMode = true
-				fmt.Printf("Ghost Node started (PID: %d)\n", process.Pid)
+				logger.Info("Ghost Node started (PID: %d)\n", process.Pid)
 			} else {
-				// TODO: Panic and shutdown all processes
-				fmt.Println("Ghost Mode enabling failed.")
+				// TODO(@christopher): Panic and shutdown all processes
+				logger.Error("Ghost Mode enabling failed.")
 			}
 		}
 	} else {
-		fmt.Println("Keeping Ghost Mode enabled...")
+		logger.Info("keeping Ghost Mode enabled")
 	}
 }
 
 func DisableGhostMode() {
 	if Process.GhostMode {
-		fmt.Println("Disabling Ghost Mode...")
+		logger.Info("disabling Ghost Mode")
 
 		shutdownNode()
 
 		process, err := startNode(false)
 		if err != nil {
-			fmt.Println("Ghost Mode disabling failed.")
+			logger.Error("Ghost Mode disabling failed", err)
 		} else {
 			if process != nil && process.Pid > 0 {
 				Process.Id = process.Pid
 				Process.GhostMode = true
-				fmt.Printf("Normal Node started (PID: %d)\n", process.Pid)
+				logger.Info("Normal Node started (PID: %d)\n", process.Pid)
 			} else {
-				// TODO: Panic and shutdown all processes
-				fmt.Println("Ghost Mode disabling failed.")
+				// TODO(@christopher): Panic and shutdown all processes
+				logger.Error("Ghost Mode disabling failed")
 			}
 		}
 	} else {
-		fmt.Println("Keeping Normal Mode enabled...")
+		logger.Info("keeping Normal Mode enabled")
 	}
 }

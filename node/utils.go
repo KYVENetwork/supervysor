@@ -1,7 +1,6 @@
 package node
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"syscall"
@@ -10,21 +9,21 @@ import (
 func shutdownNode() {
 	process, err := os.FindProcess(Process.Id)
 	if err != nil {
-		fmt.Println("Error finding process.")
-		// TODO: Panic and shutdown all running processes
+		logger.Error("couldn't find process to shutdown")
+		// TODO(@christopher): Panic and shutdown all running processes
 	}
 
 	// Terminate the process
 	err = process.Signal(syscall.SIGTERM)
 	if err != nil {
-		// TODO: Panic and shutdown all running processes
-		fmt.Printf("Error terminating process: %s\n", err)
+		// TODO(@christopher): Panic and shutdown all running processes
+		logger.Error("couldn't terminate process: %s\n", err)
 		return
 	}
 
 	Process.Id = 0
 
-	fmt.Println("Process terminated successfully.")
+	logger.Info("process terminated successfully")
 }
 
 func moveAddressBook() {
@@ -37,14 +36,11 @@ func moveAddressBook() {
 
 		err := cmd.Run()
 		if err != nil {
-			if exitError, ok := err.(*exec.ExitError); ok {
-				fmt.Printf("Couldn't move addrbook.json: %s\n", exitError.Stderr)
-			} else {
-				fmt.Printf("Couldn't move addrbook.json: %s\n", err.Error())
-			}
+			logger.Error("couldn't move addrbook.json: %s\n", err)
 			return
 		}
-		fmt.Printf("Addressbook sucessfully moved back to %s .", destination)
+
+		logger.Info("address book successfully moved back to %s .", destination)
 	} else {
 		// Move address book to hidden place, because mode will change from Normal to Ghost
 		source := "/root/.osmosisd/config/addrbook.json"
@@ -54,13 +50,10 @@ func moveAddressBook() {
 
 		err := cmd.Run()
 		if err != nil {
-			if exitError, ok := err.(*exec.ExitError); ok {
-				fmt.Printf("Couldn't move addrbook.json: %s\n", exitError.Stderr)
-			} else {
-				fmt.Printf("Couldn't move addrbook.json: %s\n", err.Error())
-			}
+			logger.Error("couldn't move addrbook.json: %s\n", err)
 			return
 		}
-		fmt.Printf("Addressbook sucessfully moved to %s .", destination)
+
+		logger.Info("address book successfully moved to %s .", destination)
 	}
 }
