@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
 )
 
-func startNode() (*os.Process, error) {
+func startNode(stopChan chan struct{}) (*os.Process, error) {
 	// TODO: Check if process.id is still running
 	// TODO: Move filled address book, expose seeds
 
@@ -33,6 +34,18 @@ func startNode() (*os.Process, error) {
 			fmt.Println(err)
 			processIDChan <- -1
 			return
+		}
+
+		signalChan := make(chan os.Signal, 1)
+		signal.Notify(signalChan, os.Interrupt)
+
+		select {
+		case <-signalChan:
+			// SIGINT signal received, stop the process
+			cmd.Process.Signal(os.Interrupt)
+		case <-stopChan:
+			// stopChan closed, stop the process
+			cmd.Process.Signal(os.Interrupt)
 		}
 
 		processIDChan <- cmd.Process.Pid

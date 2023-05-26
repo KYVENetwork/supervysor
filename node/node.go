@@ -20,20 +20,20 @@ type Response struct {
 
 var processId = 0
 
-func InitialStart() (int, error) {
-	process, err := startNode()
+func InitialStart(stopChan chan struct{}) (*os.Process, error) {
+	process, err := startNode(stopChan)
 
 	if err != nil {
 		fmt.Print(err.Error())
 		os.Exit(1)
-		return 0, err
+		return process, err
 	}
 
 	fmt.Println("Process started: ", process.Pid)
 
 	processId = process.Pid
 
-	return process.Pid, nil
+	return process, nil
 }
 
 func GetNodeHeight() int {
