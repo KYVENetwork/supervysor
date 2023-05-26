@@ -18,7 +18,7 @@ type Response struct {
 	} `json:"result"`
 }
 
-var processId = 0
+var ProcessId = 0
 
 func InitialStart() (int, error) {
 	process, err := startNode()
@@ -31,13 +31,13 @@ func InitialStart() (int, error) {
 
 	fmt.Println("Process started: ", process.Pid)
 
-	processId = process.Pid
+	ProcessId = process.Pid
 
 	return process.Pid, nil
 }
 
 func GetNodeHeight() int {
-	if processId == 0 {
+	if ProcessId == 0 {
 		fmt.Println("Node hasn't started yet.")
 		time.Sleep(time.Second * 5)
 		GetNodeHeight()

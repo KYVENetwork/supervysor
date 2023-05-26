@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"os/signal"
-	"syscall"
 )
 
 func startNode() (*os.Process, error) {
@@ -36,17 +34,6 @@ func startNode() (*os.Process, error) {
 		}
 
 		processIDChan <- cmd.Process.Pid
-
-		// Warte auf das Signal Ctrl+C (Interrupt)
-		c := make(chan os.Signal, 1)
-		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-		<-c
-
-		// Beende den Prozess
-		err = cmd.Process.Signal(os.Interrupt)
-		if err != nil {
-			fmt.Println(err)
-		}
 
 		// Wait for process end
 		err = cmd.Wait()
