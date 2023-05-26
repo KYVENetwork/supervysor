@@ -18,6 +18,7 @@ type Response struct {
 }
 
 func InitialStart() (int, error) {
+	fmt.Println("CURRENT PROCESSES (initially): ", <-processIds)
 	process, err := startNode()
 
 	if err != nil {

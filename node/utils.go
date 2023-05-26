@@ -6,11 +6,11 @@ import (
 	"os/exec"
 )
 
+var processIds = make(chan int)
+
 func startNode() (*os.Process, error) {
 	// TODO: Check if process.id is still running
 	// TODO: Move filled address book, expose seeds
-
-	processIds := make(chan int)
 
 	app := "osmosisd"
 	arg1 := "start"
