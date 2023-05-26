@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 )
@@ -18,34 +17,26 @@ type Response struct {
 	} `json:"result"`
 }
 
-var ProcessId = 0
-
-func InitialStart() (int, error) {
-	process, err := startNode()
-
-	if err != nil {
-		fmt.Print(err.Error())
-		os.Exit(1)
-		return 0, err
-	}
-
-	fmt.Println("Process started: ", process.Pid)
-
-	ProcessId = process.Pid
-
-	return process.Pid, nil
+type ProcessType struct {
+	Id        int
+	GhostMode *bool
 }
 
-// TODO: Error handling
+var Process = ProcessType{
+	Id:        0,
+	GhostMode: nil,
+}
+
 func GetNodeHeight() int {
-	if ProcessId == 0 {
-		fmt.Println("Node hasn't started yet.")
+	// TODO: Complete error handling
+
+	if Process.Id == 0 {
+		fmt.Println("Node hasn't started yet. Try again in 5s ...")
 		time.Sleep(time.Second * 5)
 		GetNodeHeight()
 	}
 
-	fmt.Println("Got ProcessId ", ProcessId, "; start getNodeHeight().")
-	// TODO: Query from locally running node (-> not configurable)
+	fmt.Println("Got ProcessId ", Process.Id, "; start getNodeHeight().")
 	abciEndpoint := "http://localhost:26657/abci_info?"
 	response, err := http.Get(abciEndpoint)
 
