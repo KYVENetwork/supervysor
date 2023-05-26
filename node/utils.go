@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"os/signal"
-	"syscall"
 )
 
 func startNode() (*os.Process, error) {
@@ -25,9 +23,7 @@ func startNode() (*os.Process, error) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
-
+	// Kanal für die Prozess-ID
 	processIDChan := make(chan int)
 
 	go func() {
