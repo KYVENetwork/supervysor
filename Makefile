@@ -28,5 +28,5 @@ format:
 
 lint:
 	@echo "🤖 Running linter..."
-	@go run $(golangci_lint_cmd) run --skip-dirs scripts --timeout=10m
+	@go run $(golangci_lint_cmd) run --timeout=10m
 	@echo "✅ Completed linting!"
