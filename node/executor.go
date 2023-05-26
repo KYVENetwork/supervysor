@@ -6,6 +6,7 @@ import (
 )
 
 func InitialStart() (int, error) {
+	fmt.Println("Starting initially...")
 	process, err := startNode(true)
 
 	if err != nil {
@@ -14,7 +15,7 @@ func InitialStart() (int, error) {
 		return 0, err
 	}
 
-	fmt.Println("Process started: ", process.Pid)
+	fmt.Println("Initial process started: ", process.Pid)
 
 	Process.Id = process.Pid
 	Process.GhostMode = false
@@ -40,28 +41,31 @@ func EnableGhostMode() {
 				fmt.Println("Ghost Mode enabling failed.")
 			}
 		}
+	} else {
+		fmt.Println("Keeping Ghost Mode enabled...")
 	}
 }
 
 func DisableGhostMode() {
-	// TODO: Check node status (Ghost or not)
-	fmt.Println("Disabling Ghost Mode...")
-
 	if Process.GhostMode {
+		fmt.Println("Disabling Ghost Mode...")
+
 		shutdownNode()
 
 		process, err := startNode(false)
 		if err != nil {
-			fmt.Println("Ghost Mode enabling failed.")
+			fmt.Println("Ghost Mode disabling failed.")
 		} else {
 			if process != nil && process.Pid > 0 {
 				Process.Id = process.Pid
 				Process.GhostMode = true
-				fmt.Printf("Ghost Node started (PID: %d)\n", process.Pid)
+				fmt.Printf("Normal Node started (PID: %d)\n", process.Pid)
 			} else {
 				// TODO: Panic and shutdown all processes
-				fmt.Println("Ghost Mode enabling failed.")
+				fmt.Println("Ghost Mode disabling failed.")
 			}
 		}
+	} else {
+		fmt.Println("Keeping Normal Mode enabled...")
 	}
 }

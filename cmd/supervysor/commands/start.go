@@ -32,15 +32,13 @@ var startCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		fmt.Println("STARTED INITIALLY.")
-
 		for {
 			nodeHeight := node.GetNodeHeight()
 
 			// poolHeight := pool.GetPoolHeight(poolId)
 			poolHeight := 1
 
-			fmt.Println(nodeHeight, poolHeight)
+			fmt.Printf("Got node height %d and pool height %d", nodeHeight, poolHeight)
 
 			diff := nodeHeight - poolHeight
 
@@ -51,10 +49,10 @@ var startCmd = &cobra.Command{
 			} else if diff <= 500 && diff > 0 {
 				node.DisableGhostMode()
 			} else {
-				fmt.Println("Error: negative difference between pool and node height.")
+				fmt.Println("Issue: negative difference between pool and node height.")
 			}
 
-			time.Sleep(time.Minute / 12)
+			time.Sleep(time.Minute / 6)
 		}
 	},
 }
