@@ -12,14 +12,12 @@ func startNode() (*os.Process, error) {
 
 	app := "osmosisd"
 	arg1 := "start"
-	arg2 := "--p2p.seeds"
 
 	// TODO: Add exposed seeds from cmd input
-	arg3 := ""
 
 	cmdPath, err := exec.LookPath(app)
 
-	cmd := exec.Command(cmdPath, arg1, arg2, arg3)
+	cmd := exec.Command(cmdPath, arg1)
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

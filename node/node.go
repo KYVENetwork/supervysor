@@ -17,6 +17,18 @@ type Response struct {
 	} `json:"result"`
 }
 
+func InitialStart() (int, error) {
+	process, err := startNode()
+
+	if err != nil {
+		fmt.Print(err.Error())
+		os.Exit(1)
+		return 0, err
+	}
+
+	return process.Pid, nil
+}
+
 func GetNodeHeight() int {
 	// TODO: Query from locally running node (-> not configurable)
 	abciEndpoint := "http://localhost:26657/abci_info?"

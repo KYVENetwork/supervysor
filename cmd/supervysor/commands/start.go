@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"os"
 	"supervysor/node"
 	"time"
 )
@@ -25,6 +26,11 @@ var startCmd = &cobra.Command{
 	Short: "Start supervising node",
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: Start node initially and store process.id
+		_, err := node.InitialStart()
+		if err != nil {
+			fmt.Print(err.Error())
+			os.Exit(1)
+		}
 		for {
 			nodeHeight := node.GetNodeHeight()
 
