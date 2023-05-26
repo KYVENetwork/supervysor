@@ -48,9 +48,6 @@ var startCmd = &cobra.Command{
 			<-c
 
 			fmt.Println("CTRL + C")
-			for _ = range c {
-				os.Exit(0)
-			}
 
 			if node.ProcessId != 0 {
 				process, err := os.FindProcess(node.ProcessId)
@@ -67,6 +64,7 @@ var startCmd = &cobra.Command{
 
 				fmt.Println("Prozess erfolgreich beendet.")
 			}
+			os.Exit(0)
 		}()
 
 		for {
