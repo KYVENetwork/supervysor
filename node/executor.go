@@ -13,7 +13,7 @@ func InitialStart() (int, error) {
 		return 0, err
 	}
 
-	logger.Info("initial process started: %s\n", process.Pid)
+	logger.Info("initial process started, PID: ", process.Pid)
 
 	Process.Id = process.Pid
 	Process.GhostMode = false

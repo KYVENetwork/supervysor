@@ -17,7 +17,7 @@ func shutdownNode() {
 	err = process.Signal(syscall.SIGTERM)
 	if err != nil {
 		// TODO(@christopher): Panic and shutdown all running processes
-		logger.Error("couldn't terminate process: %s\n", err)
+		logger.Error("couldn't terminate process", err)
 		return
 	}
 
@@ -36,11 +36,11 @@ func moveAddressBook() {
 
 		err := cmd.Run()
 		if err != nil {
-			logger.Error("couldn't move addrbook.json: %s\n", err)
+			logger.Error("couldn't move addrbook.json", err)
 			return
 		}
 
-		logger.Info("address book successfully moved back to %s .", destination)
+		logger.Info("address book successfully moved back to", destination)
 	} else {
 		// Move address book to hidden place, because mode will change from Normal to Ghost
 		source := "/root/.osmosisd/config/addrbook.json"
@@ -50,7 +50,7 @@ func moveAddressBook() {
 
 		err := cmd.Run()
 		if err != nil {
-			logger.Error("couldn't move addrbook.json: %s\n", err)
+			logger.Error("couldn't move addrbook.json", err)
 			return
 		}
 
