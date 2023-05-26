@@ -6,7 +6,7 @@ import (
 )
 
 func InitialStart() (int, error) {
-	process, err := startNode()
+	process, err := startNode(true)
 
 	if err != nil {
 		fmt.Print(err.Error())
@@ -17,7 +17,7 @@ func InitialStart() (int, error) {
 	fmt.Println("Process started: ", process.Pid)
 
 	Process.Id = process.Pid
-	*Process.GhostMode = false
+	Process.GhostMode = false
 
 	return process.Pid, nil
 }
@@ -34,7 +34,7 @@ func EnableGhostMode() {
 	} else {
 		if process != nil && process.Pid > 0 {
 			Process.Id = process.Pid
-			*Process.GhostMode = true
+			Process.GhostMode = true
 			fmt.Printf("Ghost Node started (PID: %d)\n", process.Pid)
 		} else {
 			// TODO: Panic and shutdown all processes

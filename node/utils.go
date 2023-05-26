@@ -7,11 +7,13 @@ import (
 	"syscall"
 )
 
-func startNode() (*os.Process, error) {
+func startNode(initial bool) (*os.Process, error) {
 
-	moveAddressBook()
+	if !initial {
+		moveAddressBook()
+	}
 
-	if !(Process.Id == 0 && *Process.GhostMode == true) {
+	if !(Process.Id == 0 && Process.GhostMode == true) {
 		// TODO: Panic and stop all processes
 		return nil, nil
 	} else {
@@ -69,7 +71,7 @@ func startGhostNode() (*os.Process, error) {
 
 	moveAddressBook()
 
-	if !(Process.Id == 0 && *Process.GhostMode == false) {
+	if !(Process.Id == 0 && Process.GhostMode == false) {
 		// TODO: Panic and stop all processes
 		return nil, nil
 	} else {
@@ -150,7 +152,7 @@ func shutdownNode() {
 }
 
 func moveAddressBook() {
-	if *Process.GhostMode {
+	if Process.GhostMode {
 		// Move address book to right place, because mode will change from Ghost to Normal
 		source := "/root/.osmosisd/addrbook.json"
 		destination := "/root/.osmosisd/config/ "

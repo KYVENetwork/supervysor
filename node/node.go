@@ -19,12 +19,12 @@ type Response struct {
 
 type ProcessType struct {
 	Id        int
-	GhostMode *bool
+	GhostMode bool
 }
 
 var Process = ProcessType{
 	Id:        0,
-	GhostMode: nil,
+	GhostMode: true,
 }
 
 func GetNodeHeight() int {
