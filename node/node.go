@@ -53,7 +53,7 @@ func GetNodeHeight() int {
 		fmt.Print(err.Error())
 		fmt.Println("Failed to query height. Try again in 5s ...")
 		time.Sleep(time.Second * 5)
-		GetNodeHeight()
+		return GetNodeHeight()
 	} else {
 		responseData, err := io.ReadAll(response.Body)
 		if err != nil {
@@ -78,5 +78,4 @@ func GetNodeHeight() int {
 
 		return nodeHeight
 	}
-	return 0
 }
