@@ -8,7 +8,6 @@ import (
 func InitialStart() (int, error) {
 	fmt.Println("Starting initially...")
 	process, err := startNode(true)
-
 	if err != nil {
 		fmt.Print(err.Error())
 		os.Exit(1)

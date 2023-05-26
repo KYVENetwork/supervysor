@@ -2,15 +2,14 @@ package commands
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"os"
-	"supervysor/node"
 	"time"
+
+	"github.com/KYVENetwork/supervysor/node"
+	"github.com/spf13/cobra"
 )
 
-var (
-	poolId int64
-)
+var poolId int64
 
 func init() {
 	startCmd.Flags().Int64Var(&poolId, "pool-id", 0, "pool id")
@@ -26,7 +25,6 @@ var startCmd = &cobra.Command{
 	Short: "Start supervising node",
 	Run: func(cmd *cobra.Command, args []string) {
 		_, err := node.InitialStart()
-
 		if err != nil {
 			fmt.Print(err.Error())
 			os.Exit(1)

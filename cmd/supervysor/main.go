@@ -1,7 +1,7 @@
 package main
 
 import (
-	"supervysor/cmd/supervysor/commands"
+	"github.com/KYVENetwork/supervysor/cmd/supervysor/commands"
 )
 
 func main() {

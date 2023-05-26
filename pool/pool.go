@@ -20,7 +20,6 @@ type Response struct {
 func GetPoolHeight(poolId int64) int {
 	poolEndpoint := "https://api.korellia.kyve.network/kyve/query/v1beta1/pool/" + strconv.FormatInt(poolId, 10)
 	response, err := http.Get(poolEndpoint)
-
 	if err != nil {
 		fmt.Print(err.Error())
 		os.Exit(1)
@@ -40,7 +39,6 @@ func GetPoolHeight(poolId int64) int {
 	currentKey := resp.Pool.Data.CurrentKey
 
 	poolHeight, err := strconv.Atoi(currentKey)
-
 	if err != nil {
 		fmt.Println("Error during conversion", err)
 	}

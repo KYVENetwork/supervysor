@@ -61,7 +61,6 @@ func GetNodeHeight() int {
 		lastBlockHeight := resp.Result.Response.LastBlockHeight
 
 		nodeHeight, err := strconv.Atoi(lastBlockHeight)
-
 		if err != nil {
 			fmt.Println("Error during conversion", err)
 		}
@@ -71,12 +70,11 @@ func GetNodeHeight() int {
 }
 
 func startNode(initial bool) (*os.Process, error) {
-
 	if !initial {
 		moveAddressBook()
 	}
 
-	if !(Process.Id == 0 && Process.GhostMode == true) && initial == false {
+	if !(Process.Id == 0 && Process.GhostMode) && !initial {
 		// TODO: Panic and stop all processes
 		return nil, nil
 	} else {
@@ -132,10 +130,9 @@ func startNode(initial bool) (*os.Process, error) {
 }
 
 func startGhostNode() (*os.Process, error) {
-
 	moveAddressBook()
 
-	if !(Process.Id == 0 && Process.GhostMode == false) {
+	if !(Process.Id == 0 && !Process.GhostMode) {
 		// TODO: Panic and stop all processes
 		return nil, nil
 	} else {
