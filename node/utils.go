@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
+	"syscall"
 )
-
-var processIds = make(chan int)
 
 func startNode() (*os.Process, error) {
 	// TODO: Check if process.id is still running
@@ -14,33 +14,53 @@ func startNode() (*os.Process, error) {
 
 	app := "osmosisd"
 	arg1 := "start"
+	cmdPath, err := exec.LookPath(app)
+	if err != nil {
+		return nil, err
+	}
 
 	// TODO: Add exposed seeds from cmd input
-
-	cmdPath, err := exec.LookPath(app)
-
 	cmd := exec.Command(cmdPath, arg1)
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	err = cmd.Start()
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
+
+	processIDChan := make(chan int)
+
+	go func() {
+		// Starte den Befehl
+		err := cmd.Start()
+		if err != nil {
+			fmt.Println(err)
+			processIDChan <- -1
+			return
+		}
+
+		processIDChan <- cmd.Process.Pid
+
+		// Wait for process end
+		err = cmd.Wait()
+		if err != nil {
+			fmt.Println(err)
+			processIDChan <- -1
+		}
+	}()
+
+	processID := <-processIDChan
+
+	if processID == -1 {
+		return nil, fmt.Errorf("Couldn't start running the node.")
+	}
+
+	process, err := os.FindProcess(processID)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 
-	go func() { processIds <- cmd.Process.Pid }()
-
-	fmt.Println("PROCESS ", <-processIds)
-
-	err = cmd.Wait()
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-
-	return cmd.Process, nil
+	return process, nil
 }
 
 func startGhostNode() {

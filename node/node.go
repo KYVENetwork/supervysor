@@ -18,7 +18,6 @@ type Response struct {
 }
 
 func InitialStart() (int, error) {
-	fmt.Println("CURRENT PROCESSES (initially): ", <-processIds)
 	process, err := startNode()
 
 	if err != nil {
@@ -27,7 +26,7 @@ func InitialStart() (int, error) {
 		return 0, err
 	}
 
-	fmt.Println("PROCESS STARTED")
+	fmt.Println("Process started: ", process.Pid)
 
 	return process.Pid, nil
 }

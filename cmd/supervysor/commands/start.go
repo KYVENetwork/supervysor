@@ -31,7 +31,7 @@ var startCmd = &cobra.Command{
 			fmt.Print(err.Error())
 			os.Exit(1)
 		}
-		fmt.Println("STARTED INITIAL.")
+		fmt.Println("STARTED INITIALLY.")
 		for {
 			nodeHeight := node.GetNodeHeight()
 
