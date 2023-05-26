@@ -25,11 +25,9 @@ func startNode() (*os.Process, error) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	// Kanal für die Prozess-ID
 	processIDChan := make(chan int)
 
 	go func() {
-		// Starte den Befehl
 		err := cmd.Start()
 		if err != nil {
 			fmt.Println(err)

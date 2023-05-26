@@ -70,5 +70,7 @@ func GetNodeHeight() int {
 		fmt.Println("Error during conversion", err)
 	}
 
+	fmt.Println("GetNodeHeight: ", nodeHeight)
+
 	return nodeHeight
 }
