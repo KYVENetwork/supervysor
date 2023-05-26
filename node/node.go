@@ -42,6 +42,8 @@ func GetNodeHeight() int {
 		time.Sleep(time.Second * 5)
 		GetNodeHeight()
 	}
+
+	fmt.Println("Got ProcessId ", ProcessId, "; start getNodeHeight().")
 	// TODO: Query from locally running node (-> not configurable)
 	abciEndpoint := "http://localhost:26657/abci_info?"
 	response, err := http.Get(abciEndpoint)
