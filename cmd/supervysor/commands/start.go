@@ -44,17 +44,17 @@ var startCmd = &cobra.Command{
 
 			diff := nodeHeight - poolHeight
 
-			if diff >= 10000 {
+			if diff >= 1000 {
 				node.EnableGhostMode()
-			} else if diff < 10000 && diff > 5000 {
+			} else if diff < 1000 && diff > 500 {
 				// do nothing
-			} else if diff <= 5000 && diff > 0 {
+			} else if diff <= 500 && diff > 0 {
 				node.DisableGhostMode()
 			} else {
 				fmt.Println("Error: negative difference between pool and node height.")
 			}
 
-			time.Sleep(time.Minute)
+			time.Sleep(time.Minute / 12)
 		}
 	},
 }

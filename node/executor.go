@@ -23,21 +23,22 @@ func InitialStart() (int, error) {
 }
 
 func EnableGhostMode() {
-	// TODO: Check node status (Ghost or not)
-	fmt.Println("Enabling Ghost Mode...")
-	shutdownNode()
+	if !Process.GhostMode {
+		fmt.Println("Enabling Ghost Mode...")
+		shutdownNode()
 
-	process, err := startGhostNode()
-	if err != nil {
-		fmt.Println("Ghost Mode enabling failed.")
-	} else {
-		if process != nil && process.Pid > 0 {
-			Process.Id = process.Pid
-			Process.GhostMode = true
-			fmt.Printf("Ghost Node started (PID: %d)\n", process.Pid)
-		} else {
-			// TODO: Panic and shutdown all processes
+		process, err := startGhostNode()
+		if err != nil {
 			fmt.Println("Ghost Mode enabling failed.")
+		} else {
+			if process != nil && process.Pid > 0 {
+				Process.Id = process.Pid
+				Process.GhostMode = true
+				fmt.Printf("Ghost Node started (PID: %d)\n", process.Pid)
+			} else {
+				// TODO: Panic and shutdown all processes
+				fmt.Println("Ghost Mode enabling failed.")
+			}
 		}
 	}
 }
