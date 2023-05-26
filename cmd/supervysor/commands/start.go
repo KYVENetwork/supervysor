@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
-	"os/signal"
 	"supervysor/node"
-	"syscall"
 	"time"
 )
 
@@ -35,37 +33,6 @@ var startCmd = &cobra.Command{
 		}
 
 		fmt.Println("STARTED INITIALLY.")
-
-		// Fire off a goroutine to loop until that channel receives a signal.
-		// When a signal is received simply exit the program
-		go func() {
-			// Setup a channel to receive a signal
-			c := make(chan os.Signal, 1)
-
-			// Notify this channel when a SIGINT is received
-			signal.Notify(c, os.Interrupt)
-
-			<-c
-
-			fmt.Println("CTRL + C")
-
-			if node.ProcessId != 0 {
-				process, err := os.FindProcess(node.ProcessId)
-				if err != nil {
-					fmt.Printf("Fehler beim Finden des Prozesses: %v\n", err)
-					os.Exit(1)
-				}
-
-				err = process.Signal(syscall.SIGTERM)
-				if err != nil {
-					fmt.Printf("Fehler beim Beenden des Prozesses: %v\n", err)
-					os.Exit(1)
-				}
-
-				fmt.Println("Prozess erfolgreich beendet.")
-			}
-			os.Exit(0)
-		}()
 
 		for {
 			nodeHeight := node.GetNodeHeight()
