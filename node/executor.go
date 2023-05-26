@@ -6,8 +6,8 @@ import (
 
 func EnableGhostMode() {
 	// TODO: Check node status (Ghost or not)
-	// fmt.Println("Enabling Ghost Mode...")
-	// shutdownNode()
+	fmt.Println("Enabling Ghost Mode...")
+	shutdownNode()
 
 	// TODO: Change startNode to startGhostNode()
 	// process, err := startNode()

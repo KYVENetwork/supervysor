@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"syscall"
 )
 
 func startNode() (*os.Process, error) {
@@ -82,4 +83,17 @@ func startGhostNode() {
 
 func shutdownNode() {
 	// TODO: Expect process.id and shutdown the process
+	process, err := os.FindProcess(ProcessId)
+	if err != nil {
+		fmt.Println("Error finding process.")
+	}
+
+	// Terminate the process
+	err = process.Signal(syscall.SIGTERM)
+	if err != nil {
+		fmt.Printf("Error terminating process: %s\n", err)
+		return
+	}
+
+	fmt.Println("Process terminated successfully.")
 }
