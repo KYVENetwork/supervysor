@@ -36,6 +36,7 @@ func InitialStart() (int, error) {
 	return process.Pid, nil
 }
 
+// TODO: Error handling
 func GetNodeHeight() int {
 	if ProcessId == 0 {
 		fmt.Println("Node hasn't started yet.")
@@ -77,4 +78,5 @@ func GetNodeHeight() int {
 
 		return nodeHeight
 	}
+	return 0
 }
