@@ -13,7 +13,7 @@ func startNode(initial bool) (*os.Process, error) {
 		moveAddressBook()
 	}
 
-	if !(Process.Id == 0 && Process.GhostMode == true) {
+	if !(Process.Id == 0 && Process.GhostMode == true) && initial == false {
 		// TODO: Panic and stop all processes
 		return nil, nil
 	} else {

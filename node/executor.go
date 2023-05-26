@@ -27,7 +27,6 @@ func EnableGhostMode() {
 	fmt.Println("Enabling Ghost Mode...")
 	shutdownNode()
 
-	// TODO: Change startNode to startGhostNode()
 	process, err := startGhostNode()
 	if err != nil {
 		fmt.Println("Ghost Mode enabling failed.")
@@ -47,13 +46,21 @@ func DisableGhostMode() {
 	// TODO: Check node status (Ghost or not)
 	fmt.Println("Disabling Ghost Mode...")
 
-	shutdownNode()
+	if Process.GhostMode {
+		shutdownNode()
 
-	//_, err := startNode()
-	//if err != nil {
-	//	fmt.Println("Ghost Mode disabling failed.")
-	//} else {
-	//	fmt.Println("Ghost Mode enabled.")
-	//}
-	//fmt.Println("Ghost Mode disabled.")
+		process, err := startNode(false)
+		if err != nil {
+			fmt.Println("Ghost Mode enabling failed.")
+		} else {
+			if process != nil && process.Pid > 0 {
+				Process.Id = process.Pid
+				Process.GhostMode = true
+				fmt.Printf("Ghost Node started (PID: %d)\n", process.Pid)
+			} else {
+				// TODO: Panic and shutdown all processes
+				fmt.Println("Ghost Mode enabling failed.")
+			}
+		}
+	}
 }
