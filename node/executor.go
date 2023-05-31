@@ -4,9 +4,9 @@ import (
 	"os"
 )
 
-func InitialStart() (int, error) {
+func InitialStart(seeds string) (int, error) {
 	logger.Info("starting initially")
-	process, err := startNode(true)
+	process, err := startNode(true, seeds)
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
@@ -44,13 +44,13 @@ func EnableGhostMode() {
 	}
 }
 
-func DisableGhostMode() {
+func DisableGhostMode(seeds string) {
 	if Process.GhostMode {
 		logger.Info("disabling Ghost Mode")
 
 		shutdownNode()
 
-		process, err := startNode(false)
+		process, err := startNode(false, seeds)
 		if err != nil {
 			logger.Error("Ghost Mode disabling failed", err)
 		} else {

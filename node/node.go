@@ -73,7 +73,7 @@ func GetNodeHeight() int {
 	}
 }
 
-func startNode(initial bool) (*os.Process, error) {
+func startNode(initial bool, seeds string) (*os.Process, error) {
 	if !initial {
 		moveAddressBook()
 	}
@@ -86,7 +86,10 @@ func startNode(initial bool) (*os.Process, error) {
 		app := "osmosisd"
 		arg1 := "start"
 		arg2 := "--p2p.seeds"
-		arg3 := "21d7539792ee2e0d650b199bf742c56ae0cf499e@162.55.132.230:2000,44ff091135ef2c69421eacfa136860472ac26e60@65.21.141.212:2000,ec4d3571bf709ab78df61716e47b5ac03d077a1a@65.108.43.26:2000,4cb8e1e089bdf44741b32638591944dc15b7cce3@65.108.73.18:2000,f515a8599b40f0e84dfad935ba414674ab11a668@osmosis.blockpane.com:26656,6bcdbcfd5d2c6ba58460f10dbcfde58278212833@osmosis.artifact-staking.io:26656,24841abfc8fbd401d8c86747eec375649a2e8a7e@osmosis.pbcups.org:26656,77bb5fb9b6964d6e861e91c1d55cf82b67d838b5@bd-osmosis-seed-mainnet-us-01.bdnodes.net:26656,3243426ab56b67f794fa60a79cc7f11bc7aa752d@bd-osmosis-seed-mainnet-eu-02.bdnodes.net:26656,ebc272824924ea1a27ea3183dd0b9ba713494f83@osmosis-mainnet-seed.autostake.com:26716,7c66126b64cd66bafd9ccfc721f068df451d31a3@osmosis-seed.sunshinevalidation.io:9393"
+		arg3 := seeds
+
+		// TODO(@christopher): Support pruning choice between default, everything and custom pruning setting with recommended settings on default (keeping 1 week backup based on pool settings).
+		// TODO(@christopher): Support pruning for state requests (e.g. spot-price -> pricing integration).
 
 		cmdPath, err := exec.LookPath(app)
 		if err != nil {
