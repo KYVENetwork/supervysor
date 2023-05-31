@@ -22,5 +22,5 @@ The supervysor manages the sync process of the node. Therefore, it must sync the
 ## How does it work?
 
 <p align="center">
-  <img width="70%" src="assets/supverysor.png" />
+  <img width="70%" src="../assets/supverysor.png" />
 </p>
