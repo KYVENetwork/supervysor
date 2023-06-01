@@ -5,13 +5,12 @@ import (
 	"os/exec"
 
 	"cosmossdk.io/log"
-	"github.com/KYVENetwork/supervysor/node"
 )
 
 var logger = log.NewLogger(os.Stdout)
 
-func MoveAddressBook() {
-	if node.Process.GhostMode {
+func MoveAddressBook(ghostMode bool) {
+	if ghostMode {
 		// Move address book to right place, because mode will change from Ghost to Normal
 		source := "/root/.osmosisd/addrbook.json"
 		destination := "/root/.osmosisd/config/ "

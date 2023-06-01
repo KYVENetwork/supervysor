@@ -6,7 +6,6 @@ import (
 
 	"cosmossdk.io/log"
 
-	"github.com/KYVENetwork/supervysor/pool"
 	"github.com/KYVENetwork/supervysor/settings/helpers"
 )
 
@@ -40,14 +39,15 @@ func InitializeSettings(binaryPath string, poolId int64) error {
 		return err
 	}
 
-	settingsPointer, err := pool.GetPoolSettings(poolId)
+	settings, err := helpers.GetPoolSettings(poolId)
 	if err != nil {
 		logger.Error("couldn't get pool settings")
 		return err
 	}
-	poolSettings = *settingsPointer
+	poolSettings.MaxBundleSize = settings[0]
+	poolSettings.UploadInterval = settings[1]
 
-	keepRecent := helpers.CalculateKeepRecent(poolSettings)
+	keepRecent := helpers.CalculateKeepRecent(poolSettings.MaxBundleSize, poolSettings.UploadInterval)
 
 	if keepRecent == 0 {
 		logger.Error("couldn't calculate keep-recent pruning settings")

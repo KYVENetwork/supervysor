@@ -79,7 +79,7 @@ func GetNodeHeight() int {
 
 func startNode(initial bool, binaryPath string, seeds string) (*os.Process, error) {
 	if !initial {
-		helpers.MoveAddressBook()
+		helpers.MoveAddressBook(Process.GhostMode)
 	}
 
 	if !(Process.Id == 0 && Process.GhostMode) && !initial {
@@ -151,7 +151,7 @@ func startNode(initial bool, binaryPath string, seeds string) (*os.Process, erro
 }
 
 func startGhostNode(binaryPath string) (*os.Process, error) {
-	helpers.MoveAddressBook()
+	helpers.MoveAddressBook(Process.GhostMode)
 
 	if !(Process.Id == 0 && !Process.GhostMode) {
 		// TODO(@christopher): Panic and stop all processes
