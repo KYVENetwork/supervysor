@@ -1,33 +1,17 @@
-package node
+package helpers
 
 import (
 	"os"
 	"os/exec"
-	"syscall"
+
+	"cosmossdk.io/log"
+	"github.com/KYVENetwork/supervysor/node"
 )
 
-func shutdownNode() {
-	process, err := os.FindProcess(Process.Id)
-	if err != nil {
-		logger.Error("couldn't find process to shutdown")
-		// TODO(@christopher): Panic and shutdown all running processes
-	}
+var logger = log.NewLogger(os.Stdout)
 
-	// Terminate the process
-	err = process.Signal(syscall.SIGTERM)
-	if err != nil {
-		// TODO(@christopher): Panic and shutdown all running processes
-		logger.Error("couldn't terminate process", err)
-		return
-	}
-
-	Process.Id = 0
-
-	logger.Info("process terminated successfully")
-}
-
-func moveAddressBook() {
-	if Process.GhostMode {
+func MoveAddressBook() {
+	if node.Process.GhostMode {
 		// Move address book to right place, because mode will change from Ghost to Normal
 		source := "/root/.osmosisd/addrbook.json"
 		destination := "/root/.osmosisd/config/ "

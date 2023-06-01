@@ -8,7 +8,11 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"syscall"
 	"time"
+
+	"github.com/KYVENetwork/supervysor/node/helpers"
+	"github.com/KYVENetwork/supervysor/settings"
 
 	"cosmossdk.io/log"
 )
@@ -73,30 +77,39 @@ func GetNodeHeight() int {
 	}
 }
 
-func startNode(initial bool, seeds string) (*os.Process, error) {
+func startNode(initial bool, binaryPath string, seeds string) (*os.Process, error) {
 	if !initial {
-		moveAddressBook()
+		helpers.MoveAddressBook()
 	}
 
 	if !(Process.Id == 0 && Process.GhostMode) && !initial {
 		// TODO(@christopher): Panic and stop all processes
 		return nil, nil
 	} else {
-
-		app := "osmosisd"
-		arg1 := "start"
-		arg2 := "--p2p.seeds"
-		arg3 := seeds
-
 		// TODO(@christopher): Support pruning choice between default, everything and custom pruning setting with recommended settings on default (keeping 1 week backup based on pool settings).
 		// TODO(@christopher): Support pruning for state requests (e.g. spot-price -> pricing integration).
 
-		cmdPath, err := exec.LookPath(app)
+		cmdPath, err := exec.LookPath(binaryPath)
 		if err != nil {
+			logger.Error("couldn't resolve binary path")
 			return nil, err
 		}
 
-		cmd := exec.Command(cmdPath, arg1, arg2, arg3)
+		args := []string{
+			"start",
+			"--p2p.seeds",
+			seeds,
+			"--pruning",
+			"custom",
+			"--pruning-keep-every",
+			strconv.Itoa(settings.PruningSettings.KeepEvery),
+			"--pruning-keep-recent",
+			strconv.Itoa(settings.PruningSettings.KeepRecent),
+			"--pruning-interval",
+			strconv.Itoa(settings.PruningSettings.Interval),
+		}
+
+		cmd := exec.Command(cmdPath, args...)
 
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
@@ -137,30 +150,30 @@ func startNode(initial bool, seeds string) (*os.Process, error) {
 	}
 }
 
-func startGhostNode() (*os.Process, error) {
-	moveAddressBook()
+func startGhostNode(binaryPath string) (*os.Process, error) {
+	helpers.MoveAddressBook()
 
 	if !(Process.Id == 0 && !Process.GhostMode) {
 		// TODO(@christopher): Panic and stop all processes
 		return nil, nil
 	} else {
 
-		app := "osmosisd"
-		arg1 := "start"
-		arg2 := "--p2p.seeds"
-		arg3 := " "
-		arg4 := "--p2p.laddr"
-
-		// TODO(@christopher): Find unused port
-		arg5 := "tcp://0.0.0.0:26658"
-
-		cmdPath, err := exec.LookPath(app)
+		cmdPath, err := exec.LookPath(binaryPath)
 		if err != nil {
-			logger.Error("couldn't find /.osmosisd")
+			logger.Error("couldn't resolve binary path")
 			return nil, err
 		}
 
-		cmd := exec.Command(cmdPath, arg1, arg2, arg3, arg4, arg5)
+		args := []string{
+			"start",
+			"--p2p.seeds",
+			" ",
+			"--p2p.laddr",
+			// TODO(@christopher): Find unused port
+			"tcp://0.0.0.0:26658",
+		}
+
+		cmd := exec.Command(cmdPath, args...)
 
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
@@ -199,4 +212,24 @@ func startGhostNode() (*os.Process, error) {
 
 		return process, nil
 	}
+}
+
+func shutdownNode() {
+	process, err := os.FindProcess(Process.Id)
+	if err != nil {
+		logger.Error("couldn't find process to shutdown")
+		// TODO(@christopher): Panic and shutdown all running processes
+	}
+
+	// Terminate the process
+	err = process.Signal(syscall.SIGTERM)
+	if err != nil {
+		// TODO(@christopher): Panic and shutdown all running processes
+		logger.Error("couldn't terminate process", err)
+		return
+	}
+
+	Process.Id = 0
+
+	logger.Info("process terminated successfully")
 }

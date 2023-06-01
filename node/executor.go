@@ -4,9 +4,9 @@ import (
 	"os"
 )
 
-func InitialStart(seeds string) (int, error) {
+func InitialStart(binaryPath string, seeds string) (int, error) {
 	logger.Info("starting initially")
-	process, err := startNode(true, seeds)
+	process, err := startNode(true, binaryPath, seeds)
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
@@ -21,19 +21,19 @@ func InitialStart(seeds string) (int, error) {
 	return process.Pid, nil
 }
 
-func EnableGhostMode() {
+func EnableGhostMode(binaryPath string) {
 	if !Process.GhostMode {
 		logger.Info("enabling Ghost Mode")
 		shutdownNode()
 
-		process, err := startGhostNode()
+		process, err := startGhostNode(binaryPath)
 		if err != nil {
 			logger.Error("Ghost Mode enabling failed", err)
 		} else {
 			if process != nil && process.Pid > 0 {
 				Process.Id = process.Pid
 				Process.GhostMode = true
-				logger.Info("Ghost Node started (PID: %d)\n", process.Pid)
+				logger.Info("Node started in Ghost Mode (PID: %d)\n", process.Pid)
 			} else {
 				// TODO(@christopher): Panic and shutdown all processes
 				logger.Error("Ghost Mode enabling failed.")
@@ -44,20 +44,20 @@ func EnableGhostMode() {
 	}
 }
 
-func DisableGhostMode(seeds string) {
+func DisableGhostMode(binaryPath string, seeds string) {
 	if Process.GhostMode {
 		logger.Info("disabling Ghost Mode")
 
 		shutdownNode()
 
-		process, err := startNode(false, seeds)
+		process, err := startNode(false, binaryPath, seeds)
 		if err != nil {
 			logger.Error("Ghost Mode disabling failed", err)
 		} else {
 			if process != nil && process.Pid > 0 {
 				Process.Id = process.Pid
 				Process.GhostMode = true
-				logger.Info("Normal Node started (PID: %d)\n", process.Pid)
+				logger.Info("Node started in Normal Mode(PID: %d)\n", process.Pid)
 			} else {
 				// TODO(@christopher): Panic and shutdown all processes
 				logger.Error("Ghost Mode disabling failed")

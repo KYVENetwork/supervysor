@@ -3,8 +3,9 @@ package main
 import (
 	"time"
 
+	"github.com/KYVENetwork/supervysor/settings"
+
 	"github.com/KYVENetwork/supervysor/node"
-	"github.com/KYVENetwork/supervysor/test"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 )
@@ -19,7 +20,7 @@ var startCmd = &cobra.Command{
 			return err
 		}
 
-		_, err = cast.ToUint64E(args[1])
+		poolId, err := cast.ToUint64E(args[1])
 		if err != nil {
 			return err
 		}
@@ -29,12 +30,11 @@ var startCmd = &cobra.Command{
 			return err
 		}
 
-		err = test.CheckBinaryPath(argBinaryPath)
-		if err != nil {
+		if err := settings.InitializeSettings(argBinaryPath, int64(poolId)); err != nil {
 			return err
 		}
 
-		if _, err := node.InitialStart(argSeeds); err != nil {
+		if _, err := node.InitialStart(argBinaryPath, argSeeds); err != nil {
 			return err
 		}
 
@@ -47,11 +47,11 @@ var startCmd = &cobra.Command{
 			diff := nodeHeight - poolHeight
 
 			if diff >= 1000 {
-				node.EnableGhostMode()
+				node.EnableGhostMode(argBinaryPath)
 			} else if diff < 1000 && diff > 500 {
 				// do nothing
 			} else if diff <= 500 && diff > 0 {
-				node.DisableGhostMode(argSeeds)
+				node.DisableGhostMode(argBinaryPath, argSeeds)
 			} else {
 				logger.Error("negative difference between node and pool heights")
 			}
