@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -164,13 +165,26 @@ func startGhostNode(binaryPath string) (*os.Process, error) {
 			return nil, err
 		}
 
-		args := []string{
-			"start",
-			"--p2p.seeds",
-			" ",
-			"--p2p.laddr",
-			// TODO(@christopher): Find unused port
-			"tcp://0.0.0.0:26658",
+		var args []string
+
+		if strings.HasSuffix(binaryPath, "/cosmovisor") {
+			args = []string{
+				"run",
+				"--p2p.seeds",
+				" ",
+				"--p2p.laddr",
+				// TODO(@christopher): Find unused port
+				"tcp://0.0.0.0:26658",
+			}
+		} else {
+			args = []string{
+				"start",
+				"--p2p.seeds",
+				" ",
+				"--p2p.laddr",
+				// TODO(@christopher): Find unused port
+				"tcp://0.0.0.0:26658",
+			}
 		}
 
 		cmd := exec.Command(cmdPath, args...)
