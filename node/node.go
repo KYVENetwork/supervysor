@@ -3,6 +3,7 @@ package node
 import (
 	"encoding/json"
 	"errors"
+	"github.com/KYVENetwork/supervysor/settings"
 	"io"
 	"net/http"
 	"os"
@@ -12,10 +13,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/KYVENetwork/supervysor/node/helpers"
-	"github.com/KYVENetwork/supervysor/settings"
-
 	"cosmossdk.io/log"
+	"github.com/KYVENetwork/supervysor/node/helpers"
 )
 
 var logger = log.NewLogger(os.Stdout)
@@ -96,18 +95,36 @@ func startNode(initial bool, binaryPath string, seeds string) (*os.Process, erro
 			return nil, err
 		}
 
-		args := []string{
-			"start",
-			"--p2p.seeds",
-			seeds,
-			"--pruning",
-			"custom",
-			"--pruning-keep-every",
-			strconv.Itoa(settings.PruningSettings.KeepEvery),
-			"--pruning-keep-recent",
-			strconv.Itoa(settings.PruningSettings.KeepRecent),
-			"--pruning-interval",
-			strconv.Itoa(settings.PruningSettings.Interval),
+		var args []string
+
+		if strings.HasSuffix(binaryPath, "/cosmovisor") {
+			args = []string{
+				"run",
+				"--p2p.seeds",
+				seeds,
+				"--pruning",
+				"custom",
+				"--pruning-keep-every",
+				strconv.Itoa(settings.PruningSettings.KeepEvery),
+				"--pruning-keep-recent",
+				strconv.Itoa(settings.PruningSettings.KeepRecent),
+				"--pruning-interval",
+				strconv.Itoa(settings.PruningSettings.Interval),
+			}
+		} else {
+			args = []string{
+				"start",
+				"--p2p.seeds",
+				seeds,
+				"--pruning",
+				"custom",
+				"--pruning-keep-every",
+				strconv.Itoa(settings.PruningSettings.KeepEvery),
+				"--pruning-keep-recent",
+				strconv.Itoa(settings.PruningSettings.KeepRecent),
+				"--pruning-interval",
+				strconv.Itoa(settings.PruningSettings.Interval),
+			}
 		}
 
 		cmd := exec.Command(cmdPath, args...)
