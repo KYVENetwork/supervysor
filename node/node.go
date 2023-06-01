@@ -100,6 +100,7 @@ func startNode(initial bool, binaryPath string, seeds string) (*os.Process, erro
 		if strings.HasSuffix(binaryPath, "/cosmovisor") {
 			args = []string{
 				"run",
+				"start",
 				"--p2p.seeds",
 				seeds,
 				"--pruning",
@@ -147,7 +148,7 @@ func startNode(initial bool, binaryPath string, seeds string) (*os.Process, erro
 			// Wait for process end
 			err = cmd.Wait()
 			if err != nil {
-				logger.Error("couldn't stop node", err.Error())
+				// Process can only be stopped through an error, which is why we don't need to log it
 				processIDChan <- -1
 			}
 		}()
@@ -187,6 +188,7 @@ func startGhostNode(binaryPath string) (*os.Process, error) {
 		if strings.HasSuffix(binaryPath, "/cosmovisor") {
 			args = []string{
 				"run",
+				"start",
 				"--p2p.seeds",
 				" ",
 				"--p2p.laddr",

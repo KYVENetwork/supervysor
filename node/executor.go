@@ -33,7 +33,7 @@ func EnableGhostMode(binaryPath string) {
 			if process != nil && process.Pid > 0 {
 				Process.Id = process.Pid
 				Process.GhostMode = true
-				logger.Info("Node started in Ghost Mode (PID: %d)\n", process.Pid)
+				logger.Info("node started in Ghost Mode")
 			} else {
 				// TODO(@christopher): Panic and shutdown all processes
 				logger.Error("Ghost Mode enabling failed.")
