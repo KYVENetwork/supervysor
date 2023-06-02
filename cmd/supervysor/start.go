@@ -10,7 +10,7 @@ import (
 )
 
 var startCmd = &cobra.Command{
-	Use:   "start [binary-path] [pool-id] [seeds]",
+	Use:   "start",
 	Short: "Start a supervysed Tendermint node.",
 	Args:  cobra.ExactArgs(0),
 	RunE: func(cmd *cobra.Command, args []string) error {

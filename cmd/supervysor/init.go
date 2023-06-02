@@ -79,7 +79,7 @@ var initCmd = &cobra.Command{
 }
 
 func InitializeSupervysor() error {
-	if err := settings.InitializeSettings(binaryPath, poolId, false, seeds); err != nil {
+	if err := settings.InitializeSettings(binaryPath, poolId, false, seeds, chainId); err != nil {
 		logger.Error("could not initialize settings", "err", err)
 		return err
 	}

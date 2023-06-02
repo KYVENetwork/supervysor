@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"math"
 	"net/http"
@@ -44,8 +45,17 @@ func CalculateMaxDifference(maxBundleSize int, uploadInterval int) int {
 			float64(maxBundleSize) / float64(uploadInterval) * 60 * 60 * 24 * 5))
 }
 
-func GetPoolSettings(poolId int) ([2]int, error) {
-	poolEndpoint := "https://api.korellia.kyve.network/kyve/query/v1beta1/pool/" + strconv.FormatInt(int64(poolId), 10)
+func GetPoolSettings(poolId int, chainId string) ([2]int, error) {
+	var poolEndpoint string
+	if chainId == "korellia" {
+		poolEndpoint = "https://api.korellia.kyve.network/kyve/query/v1beta1/pool/" + strconv.FormatInt(int64(poolId), 10)
+	} else if chainId == "kaon-1" {
+		poolEndpoint = "https://api-eu-1.kaon.kyve.network/kyve/query/v1beta1/pool/" + strconv.FormatInt(int64(poolId), 10)
+	} else if chainId == "kyve-1" {
+		poolEndpoint = "https://api-eu-1.kyve.network/kyve/query/v1beta1/pool/" + strconv.FormatInt(int64(poolId), 10)
+	} else {
+		return [2]int{0, 0}, fmt.Errorf("unknown chainId (needs to be kyve-1, kaon-1 or korellia)")
+	}
 	response, err := http.Get(poolEndpoint)
 	if err != nil {
 		logger.Error("API isn't available", err.Error())
