@@ -81,6 +81,7 @@ var initCmd = &cobra.Command{
 func InitializeSupervysor() error {
 	if err := settings.InitializeSettings(binaryPath, poolId, false, seeds); err != nil {
 		logger.Error("could not initialize settings", "err", err)
+		return err
 	}
 	configPath, err := getSupervysorDir()
 	if err != nil {
