@@ -1,10 +1,9 @@
 package main
 
 import (
-	"github.com/KYVENetwork/supervysor/pool"
 	"time"
 
-	"github.com/KYVENetwork/supervysor/settings"
+	"github.com/KYVENetwork/supervysor/pool"
 
 	"github.com/KYVENetwork/supervysor/node"
 	"github.com/spf13/cast"
@@ -21,17 +20,13 @@ var startCmd = &cobra.Command{
 			return err
 		}
 
-		poolId, err := cast.ToInt64E(args[1])
+		poolId, err := cast.ToIntE(args[1])
 		if err != nil {
 			return err
 		}
 
 		argSeeds, err := cast.ToStringE(args[2])
 		if err != nil {
-			return err
-		}
-
-		if err := settings.InitializeSettings(argBinaryPath, int64(poolId)); err != nil {
 			return err
 		}
 
@@ -48,6 +43,7 @@ var startCmd = &cobra.Command{
 		chainId := config.ChainId
 		interval := config.Interval
 		heightDifferenceMax := config.HeightDifferenceMax
+		heightDifferenceMin := config.HeightDifferenceMin
 
 		for {
 			nodeHeight := node.GetNodeHeight()

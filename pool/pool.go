@@ -23,14 +23,14 @@ type Response struct {
 	} `json:"pool"`
 }
 
-func GetPoolHeight(chainId string, poolId int64) (*int, error) {
+func GetPoolHeight(chainId string, poolId int) (*int, error) {
 	var poolEndpoint string
 	if chainId == "korellia" {
-		poolEndpoint = "https://api.korellia.kyve.network/kyve/query/v1beta1/pool/" + strconv.FormatInt(poolId, 10)
+		poolEndpoint = "https://api.korellia.kyve.network/kyve/query/v1beta1/pool/" + strconv.FormatInt(int64(poolId), 10)
 	} else if chainId == "kaon-1" {
-		poolEndpoint = "https://api-eu-1.kaon.kyve.network/kyve/query/v1beta1/pool/" + strconv.FormatInt(poolId, 10)
+		poolEndpoint = "https://api-eu-1.kaon.kyve.network/kyve/query/v1beta1/pool/" + strconv.FormatInt(int64(poolId), 10)
 	} else if chainId == "kyve-1" {
-		poolEndpoint = "https://api-eu-1.kyve.network/kyve/query/v1beta1/pool/" + strconv.FormatInt(poolId, 10)
+		poolEndpoint = "https://api-eu-1.kyve.network/kyve/query/v1beta1/pool/" + strconv.FormatInt(int64(poolId), 10)
 	} else {
 		return nil, fmt.Errorf("unknown chainId (needs to be kyve-1, kaon-1 or korellia)")
 	}
@@ -47,7 +47,7 @@ func GetPoolHeight(chainId string, poolId int64) (*int, error) {
 	}
 
 	var resp Response
-	err = json.Unmarshal([]byte(responseData), &resp)
+	err = json.Unmarshal(responseData, &resp)
 	if err != nil {
 		logger.Error("failed unmarshalling KYVE endpoint response", "err", err.Error())
 		return nil, err

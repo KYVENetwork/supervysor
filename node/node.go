@@ -104,32 +104,18 @@ func startNode(initial bool, binaryPath string, seeds string) (*os.Process, erro
 				"start",
 				"--p2p.seeds",
 				seeds,
-				"--pruning",
-				"custom",
-				"--pruning-keep-every",
-				strconv.Itoa(settings.PruningSettings.KeepEvery),
-				"--pruning-keep-recent",
-				strconv.Itoa(settings.PruningSettings.KeepRecent),
-				"--pruning-interval",
-				strconv.Itoa(settings.PruningSettings.Interval),
 			}
 		} else {
 			args = []string{
 				"start",
 				"--p2p.seeds",
 				seeds,
-				"--pruning",
-				"custom",
-				"--pruning-keep-every",
-				strconv.Itoa(settings.PruningSettings.KeepEvery),
-				"--pruning-keep-recent",
-				strconv.Itoa(settings.PruningSettings.KeepRecent),
-				"--pruning-interval",
-				strconv.Itoa(settings.PruningSettings.Interval),
 			}
 		}
 
-		cmd := exec.Command(cmdPath, args...)
+		mergedArgs := append(args, settings.PruningCommands...)
+
+		cmd := exec.Command(cmdPath, mergedArgs...)
 
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr

@@ -38,8 +38,14 @@ func CalculateKeepRecent(maxBundleSize int, uploadInterval int) int {
 			float64(maxBundleSize) / float64(uploadInterval) * 60 * 60 * 24 * 7))
 }
 
-func GetPoolSettings(poolId int64) ([2]int, error) {
-	poolEndpoint := "https://api.korellia.kyve.network/kyve/query/v1beta1/pool/" + strconv.FormatInt(poolId, 10)
+func CalculateMaxDifference(maxBundleSize int, uploadInterval int) int {
+	return int(
+		math.Round(
+			float64(maxBundleSize) / float64(uploadInterval) * 60 * 60 * 24 * 5))
+}
+
+func GetPoolSettings(poolId int) ([2]int, error) {
+	poolEndpoint := "https://api.korellia.kyve.network/kyve/query/v1beta1/pool/" + strconv.FormatInt(int64(poolId), 10)
 	response, err := http.Get(poolEndpoint)
 	if err != nil {
 		logger.Error("API isn't available", err.Error())

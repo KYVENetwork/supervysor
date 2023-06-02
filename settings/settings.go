@@ -3,6 +3,7 @@ package settings
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"cosmossdk.io/log"
 
@@ -16,10 +17,12 @@ type PoolSettingsType struct {
 	UploadInterval int
 }
 
-type PruningSettingsType struct {
-	Interval   int
-	KeepEvery  int
-	KeepRecent int
+type SettingsType struct {
+	MaxDifference int
+	Seeds         string
+	Interval      int
+	KeepEvery     int
+	KeepRecent    int
 }
 
 var poolSettings = PoolSettingsType{
@@ -27,16 +30,26 @@ var poolSettings = PoolSettingsType{
 	UploadInterval: 0,
 }
 
-var PruningSettings = PruningSettingsType{
-	Interval:   10,
-	KeepEvery:  0,
-	KeepRecent: 0,
+// TODO(@christopher): Integrate into config.toml
+var Settings = SettingsType{
+	MaxDifference: 0,
+	Seeds:         "",
+	Interval:      10,
+	KeepEvery:     0,
+	KeepRecent:    0,
 }
 
-func InitializeSettings(binaryPath string, poolId int64) error {
+var PruningCommands []string
+
+func InitializeSettings(binaryPath string, poolId int, stateRequests bool, seeds string) error {
 	if err := helpers.CheckBinaryPath(binaryPath); err != nil {
 		logger.Error("couldn't resolve binary path", err)
 		return err
+	}
+
+	Settings.Seeds = seeds
+	if seeds == "" {
+		return fmt.Errorf("seeds are not defined")
 	}
 
 	settings, err := helpers.GetPoolSettings(poolId)
@@ -53,8 +66,35 @@ func InitializeSettings(binaryPath string, poolId int64) error {
 		logger.Error("couldn't calculate keep-recent pruning settings")
 		return fmt.Errorf("keep-recent calculation failed, poolSettings are probably not correctly set")
 	}
+	Settings.KeepRecent = keepRecent
 
-	PruningSettings.KeepRecent = keepRecent
+	maxDifference := helpers.CalculateMaxDifference(poolSettings.MaxBundleSize, poolSettings.UploadInterval)
+
+	if maxDifference == 0 {
+		logger.Error("couldn't calculate max-difference pruning settings")
+		return fmt.Errorf("max-difference calculation failed, poolSettings are probably not correctly set")
+	}
+	Settings.MaxDifference = maxDifference
+
+	if stateRequests {
+		PruningCommands = []string{
+			"--pruning",
+			"custom",
+			"--pruning-keep-every",
+			strconv.Itoa(Settings.KeepEvery),
+			"--pruning-keep-recent",
+			strconv.Itoa(Settings.KeepRecent),
+			"--pruning-interval",
+			strconv.Itoa(Settings.Interval),
+		}
+	} else {
+		PruningCommands = []string{
+			"--pruning",
+			"everything",
+			"--min-retain-blocks",
+			strconv.Itoa(Settings.KeepRecent),
+		}
+	}
 
 	return nil
 }
