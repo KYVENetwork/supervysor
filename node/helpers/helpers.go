@@ -19,11 +19,11 @@ func MoveAddressBook(ghostMode bool) {
 
 		err := cmd.Run()
 		if err != nil {
-			logger.Error("couldn't move addrbook.json", err)
+			logger.Error("could not move addrbook.json", "error", err)
 			return
 		}
 
-		logger.Info("address book successfully moved back to", destination)
+		logger.Info("address book successfully moved back", "destination", destination)
 	} else {
 		// Move address book to hidden place, because mode will change from Normal to Ghost
 		source := "/root/.osmosisd/config/addrbook.json"
@@ -33,10 +33,10 @@ func MoveAddressBook(ghostMode bool) {
 
 		err := cmd.Run()
 		if err != nil {
-			logger.Error("couldn't move addrbook.json", err)
+			logger.Error("could not move addrbook.json", "err", err)
 			return
 		}
 
-		logger.Info("address book successfully moved to %s .", destination)
+		logger.Info("address book moved", "destination", destination)
 	}
 }

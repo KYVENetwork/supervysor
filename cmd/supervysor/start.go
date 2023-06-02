@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/KYVENetwork/supervysor/pool"
 	"time"
 
 	"github.com/KYVENetwork/supervysor/settings"
@@ -20,7 +21,7 @@ var startCmd = &cobra.Command{
 			return err
 		}
 
-		poolId, err := cast.ToUint64E(args[1])
+		poolId, err := cast.ToInt64E(args[1])
 		if err != nil {
 			return err
 		}
@@ -38,25 +39,39 @@ var startCmd = &cobra.Command{
 			return err
 		}
 
+		config, err := getConfig()
+		if err != nil {
+			logger.Error("couldn't load config")
+			return err
+		}
+
+		chainId := config.ChainId
+		interval := config.Interval
+		heightDifferenceMax := config.HeightDifferenceMax
+
 		for {
 			nodeHeight := node.GetNodeHeight()
-			poolHeight := 1 // TODO(@christopher): Replace with real height.
+			poolHeight, err := pool.GetPoolHeight(chainId, poolId)
+			if err != nil {
+				logger.Error("couldn't get pool height")
+				return err
+			}
 
 			logger.Info("fetched heights successfully", "node", nodeHeight, "pool", poolHeight)
 
-			diff := nodeHeight - poolHeight
+			diff := nodeHeight - *poolHeight
 
-			if diff >= 1000 {
+			if diff >= heightDifferenceMax {
 				node.EnableGhostMode(argBinaryPath)
-			} else if diff < 1000 && diff > 500 {
+			} else if diff < heightDifferenceMax && diff > heightDifferenceMin {
 				// do nothing
-			} else if diff <= 500 && diff > 0 {
+			} else if diff <= heightDifferenceMin && diff > 0 {
 				node.DisableGhostMode(argBinaryPath, argSeeds)
 			} else {
 				logger.Error("negative difference between node and pool heights")
 			}
 
-			time.Sleep(time.Minute / 6)
+			time.Sleep(time.Second * time.Duration(interval))
 		}
 	},
 }

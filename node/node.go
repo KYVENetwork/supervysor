@@ -3,7 +3,6 @@ package node
 import (
 	"encoding/json"
 	"errors"
-	"github.com/KYVENetwork/supervysor/settings"
 	"io"
 	"net/http"
 	"os"
@@ -12,6 +11,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/KYVENetwork/supervysor/settings"
 
 	"cosmossdk.io/log"
 	"github.com/KYVENetwork/supervysor/node/helpers"
@@ -58,19 +59,19 @@ func GetNodeHeight() int {
 	} else {
 		responseData, err := io.ReadAll(response.Body)
 		if err != nil {
-			logger.Error("couldn't read response data", err.Error())
+			logger.Error("could not read response data", "err", err.Error())
 		}
 
 		var resp Response
 		err = json.Unmarshal(responseData, &resp)
 		if err != nil {
-			logger.Error("couldn't unmarshal JSON", err.Error())
+			logger.Error("could not unmarshal JSON", "err", err.Error())
 		}
 
 		lastBlockHeight := resp.Result.Response.LastBlockHeight
 		nodeHeight, err := strconv.Atoi(lastBlockHeight)
 		if err != nil {
-			logger.Error("couldn't convert lastBlockHeight to str", err.Error())
+			logger.Error("could not convert lastBlockHeight to str", "err", err.Error())
 		}
 
 		return nodeHeight
@@ -91,7 +92,7 @@ func startNode(initial bool, binaryPath string, seeds string) (*os.Process, erro
 
 		cmdPath, err := exec.LookPath(binaryPath)
 		if err != nil {
-			logger.Error("couldn't resolve binary path")
+			logger.Error("could not resolve binary path", "err", err)
 			return nil, err
 		}
 
@@ -138,7 +139,7 @@ func startNode(initial bool, binaryPath string, seeds string) (*os.Process, erro
 		go func() {
 			err := cmd.Start()
 			if err != nil {
-				logger.Error("couldn't start node", err.Error())
+				logger.Error("could not start Normal Mode process", "err", err.Error())
 				processIDChan <- -1
 				return
 			}
@@ -161,7 +162,7 @@ func startNode(initial bool, binaryPath string, seeds string) (*os.Process, erro
 
 		process, err := os.FindProcess(processID)
 		if err != nil {
-			logger.Error("couldn't find started process", err.Error())
+			logger.Error("could not find started process", "err", err.Error())
 			return nil, err
 		}
 
@@ -179,7 +180,7 @@ func startGhostNode(binaryPath string) (*os.Process, error) {
 
 		cmdPath, err := exec.LookPath(binaryPath)
 		if err != nil {
-			logger.Error("couldn't resolve binary path")
+			logger.Error("could not resolve binary path", "err", err)
 			return nil, err
 		}
 
@@ -216,7 +217,7 @@ func startGhostNode(binaryPath string) (*os.Process, error) {
 		go func() {
 			err := cmd.Start()
 			if err != nil {
-				logger.Error(err.Error())
+				logger.Error("could not start Ghost Node process", "err", err.Error())
 				processIDChan <- -1
 				return
 			}
@@ -226,7 +227,7 @@ func startGhostNode(binaryPath string) (*os.Process, error) {
 			// Wait for process end
 			err = cmd.Wait()
 			if err != nil {
-				logger.Error(err.Error())
+				// Process can only be stopped through an error, which is why we don't need to log it
 				processIDChan <- -1
 			}
 		}()
@@ -239,7 +240,7 @@ func startGhostNode(binaryPath string) (*os.Process, error) {
 
 		process, err := os.FindProcess(processID)
 		if err != nil {
-			logger.Error("couldn't find started process")
+			logger.Error("could not find started process")
 			return nil, err
 		}
 
@@ -250,7 +251,7 @@ func startGhostNode(binaryPath string) (*os.Process, error) {
 func shutdownNode() {
 	process, err := os.FindProcess(Process.Id)
 	if err != nil {
-		logger.Error("couldn't find process to shutdown")
+		logger.Error("could not find process to shutdown", "err", err)
 		// TODO(@christopher): Panic and shutdown all running processes
 	}
 
@@ -258,7 +259,7 @@ func shutdownNode() {
 	err = process.Signal(syscall.SIGTERM)
 	if err != nil {
 		// TODO(@christopher): Panic and shutdown all running processes
-		logger.Error("couldn't terminate process", err)
+		logger.Error("could not terminate process", "err", err)
 		return
 	}
 
