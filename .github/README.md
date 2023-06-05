@@ -24,7 +24,7 @@ To successfully participate in a KYVE data pool such as Cosmoshub or Osmosis, yo
 The supervysor is a process manager that is wrapped around a node or the cosmovisor. After the initial start, the node-height and the pool-height of the KYVE data pool are queried at a specified interval, after which the difference between the two values is calculated. If the difference is higher than height_difference_max, the node is set to the Ghost Mode. In this mode, the synchronization process is stopped by making the address book inaccessible and starting the node without seeds and with a modified laddr. This ensures that the node cannot reach other peers and thus cannot synchronize new blocks. If the difference is smaller than height_difference_min, the address book is made accessible again and the node is started normally so that peers can be found and the synchronization process can continue. If the difference is smaller than height_difference_max and larger than height_difference_min the current mode is kept. In both modes, the endpoints are accessible to the protocol node, so the required data remains accessible even if the node does not synchronize.
 
 <p align="center">
-  <img width="70%" src="../assets/supverysor.png" />
+  <img width="70%" src="../assets/supervysor.png" />
 </p>
 
 ## Requirements
