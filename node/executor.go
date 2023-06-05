@@ -1,16 +1,14 @@
 package node
 
 import (
-	"os"
+	"fmt"
 )
 
 func InitialStart(binaryPath string, seeds string) (int, error) {
 	logger.Info("starting initially")
 	process, err := startNode(true, binaryPath, seeds)
 	if err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
-		return 0, err
+		return 0, fmt.Errorf("could not start node initially: %s", err)
 	}
 
 	logger.Info("initial process started", "pId", process.Pid)
@@ -21,49 +19,54 @@ func InitialStart(binaryPath string, seeds string) (int, error) {
 	return process.Pid, nil
 }
 
-func EnableGhostMode(binaryPath string) {
+func EnableGhostMode(binaryPath string) error {
 	if !Process.GhostMode {
 		logger.Info("enabling Ghost Mode")
-		shutdownNode()
+
+		if err := shutdownNode(); err != nil {
+			logger.Error("could not shutdown node", "err", err)
+		}
 
 		process, err := startGhostNode(binaryPath)
 		if err != nil {
-			logger.Error("Ghost Mode enabling failed", "err", err)
+			return fmt.Errorf("Ghost Mode enabling failed: %s", err)
 		} else {
 			if process != nil && process.Pid > 0 {
 				Process.Id = process.Pid
 				Process.GhostMode = true
 				logger.Info("node started in Ghost Mode")
 			} else {
-				// TODO(@christopher): Panic and shutdown all processes
-				logger.Error("Ghost Mode enabling failed.")
+				return fmt.Errorf("Ghost Mode enabling failed: process is not defined")
 			}
 		}
 	} else {
 		logger.Info("keeping Ghost Mode enabled")
 	}
+	return nil
 }
 
-func DisableGhostMode(binaryPath string, seeds string) {
+func DisableGhostMode(binaryPath string, seeds string) error {
 	if Process.GhostMode {
 		logger.Info("disabling Ghost Mode")
 
-		shutdownNode()
+		if err := shutdownNode(); err != nil {
+			logger.Error("could not shutdown node", "err", err)
+		}
 
 		process, err := startNode(false, binaryPath, seeds)
 		if err != nil {
-			logger.Error("Ghost Mode disabling failed", "err", err)
+			return fmt.Errorf("Ghost Mode disabling failed: %s", err)
 		} else {
 			if process != nil && process.Pid > 0 {
 				Process.Id = process.Pid
 				Process.GhostMode = true
 				logger.Info("Node started in Normal Mode", "pId", process.Pid)
 			} else {
-				// TODO(@christopher): Panic and shutdown all processes
-				logger.Error("Ghost Mode disabling failed")
+				return fmt.Errorf("Ghost Mode disabling failed: process is not defined")
 			}
 		}
 	} else {
 		logger.Info("keeping Normal Mode enabled")
 	}
+	return nil
 }

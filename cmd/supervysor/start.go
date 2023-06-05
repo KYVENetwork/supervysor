@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/KYVENetwork/supervysor/pool"
@@ -11,7 +12,7 @@ import (
 
 var startCmd = &cobra.Command{
 	Use:   "start",
-	Short: "Start a supervysed Tendermint node.",
+	Short: "Start a supervysed Tendermint node",
 	Args:  cobra.ExactArgs(0),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		config, err := getConfig()
@@ -21,6 +22,7 @@ var startCmd = &cobra.Command{
 		}
 
 		if _, err := node.InitialStart(config.BinaryPath, config.Seeds); err != nil {
+			logger.Error("initial start failed", "err", err)
 			return err
 		}
 
@@ -28,7 +30,7 @@ var startCmd = &cobra.Command{
 			nodeHeight := node.GetNodeHeight()
 			poolHeight, err := pool.GetPoolHeight(config.ChainId, config.PoolId)
 			if err != nil {
-				logger.Error("couldn't get pool height")
+				logger.Error("couldn't get pool height", "err", err)
 				return err
 			}
 
@@ -37,15 +39,20 @@ var startCmd = &cobra.Command{
 			diff := nodeHeight - *poolHeight
 
 			if diff >= config.HeightDifferenceMax {
-				node.EnableGhostMode(config.BinaryPath)
+				if err = node.EnableGhostMode(config.BinaryPath); err != nil {
+					logger.Error("could not enable Ghost Mode", "err", err)
+					return err
+				}
 			} else if diff < config.HeightDifferenceMax && diff > config.HeightDifferenceMin {
-				// do nothing
+				logger.Info("keeping current Mode", "height-difference", diff)
 			} else if diff <= config.HeightDifferenceMin && diff > 0 {
-				node.DisableGhostMode(config.BinaryPath, config.Seeds)
+				if err = node.DisableGhostMode(config.BinaryPath, config.Seeds); err != nil {
+					logger.Error("could not disable Ghost Mode", "err", err)
+					return err
+				}
 			} else {
-				logger.Error("negative difference between node and pool heights")
+				return fmt.Errorf("negative difference between node and pool heights")
 			}
-
 			time.Sleep(time.Second * time.Duration(config.Interval))
 		}
 	},

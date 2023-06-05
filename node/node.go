@@ -3,6 +3,8 @@ package node
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/KYVENetwork/supervysor/types"
 	"io"
 	"net/http"
 	"os"
@@ -20,27 +22,12 @@ import (
 
 var logger = log.NewLogger(os.Stdout)
 
-type Response struct {
-	Result struct {
-		Response struct {
-			LastBlockHeight string `json:"last_block_height"`
-		} `json:"response"`
-	} `json:"result"`
-}
-
-type ProcessType struct {
-	Id        int
-	GhostMode bool
-}
-
-var Process = ProcessType{
+var Process = types.ProcessType{
 	Id:        0,
 	GhostMode: true,
 }
 
 func GetNodeHeight() int {
-	// TODO(@christopher) Complete error handling
-
 	if Process.Id == 0 {
 		logger.Info("node hasn't started yet. Try again in 5s ...")
 
@@ -48,8 +35,7 @@ func GetNodeHeight() int {
 		GetNodeHeight()
 	}
 
-	abciEndpoint := "http://localhost:26657/abci_info?"
-	response, err := http.Get(abciEndpoint)
+	response, err := http.Get(types.ABCIEndpoint)
 
 	if err != nil {
 		logger.Error("failed to query height. Try again in 5s ...")
@@ -62,7 +48,7 @@ func GetNodeHeight() int {
 			logger.Error("could not read response data", "err", err.Error())
 		}
 
-		var resp Response
+		var resp types.HeightResponse
 		err = json.Unmarshal(responseData, &resp)
 		if err != nil {
 			logger.Error("could not unmarshal JSON", "err", err.Error())
@@ -92,8 +78,7 @@ func startNode(initial bool, binaryPath string, seeds string) (*os.Process, erro
 
 		cmdPath, err := exec.LookPath(binaryPath)
 		if err != nil {
-			logger.Error("could not resolve binary path", "err", err)
-			return nil, err
+			return nil, fmt.Errorf("could not resolve binary path: %s", err)
 		}
 
 		var args []string
@@ -125,7 +110,7 @@ func startNode(initial bool, binaryPath string, seeds string) (*os.Process, erro
 		go func() {
 			err := cmd.Start()
 			if err != nil {
-				logger.Error("could not start Normal Mode process", "err", err.Error())
+				logger.Error("could not start Normal Mode process", "err", err)
 				processIDChan <- -1
 				return
 			}
@@ -148,8 +133,7 @@ func startNode(initial bool, binaryPath string, seeds string) (*os.Process, erro
 
 		process, err := os.FindProcess(processID)
 		if err != nil {
-			logger.Error("could not find started process", "err", err.Error())
-			return nil, err
+			return nil, fmt.Errorf("could not find started process: %s", err)
 		}
 
 		return process, nil
@@ -166,8 +150,7 @@ func startGhostNode(binaryPath string) (*os.Process, error) {
 
 		cmdPath, err := exec.LookPath(binaryPath)
 		if err != nil {
-			logger.Error("could not resolve binary path", "err", err)
-			return nil, err
+			return nil, fmt.Errorf("could not resolve binary path: %s", err)
 		}
 
 		var args []string
@@ -203,14 +186,13 @@ func startGhostNode(binaryPath string) (*os.Process, error) {
 		go func() {
 			err := cmd.Start()
 			if err != nil {
-				logger.Error("could not start Ghost Node process", "err", err.Error())
+				logger.Error("could not start Ghost Node process", "err", err)
 				processIDChan <- -1
 				return
 			}
 
 			processIDChan <- cmd.Process.Pid
 
-			// Wait for process end
 			err = cmd.Wait()
 			if err != nil {
 				// Process can only be stopped through an error, which is why we don't need to log it
@@ -221,35 +203,30 @@ func startGhostNode(binaryPath string) (*os.Process, error) {
 		processID := <-processIDChan
 
 		if processID == -1 {
-			return nil, errors.New("couldn't start running the node")
+			return nil, fmt.Errorf("couldn't start running the node")
 		}
 
 		process, err := os.FindProcess(processID)
 		if err != nil {
-			logger.Error("could not find started process")
-			return nil, err
+			return nil, fmt.Errorf("could not find started process: %s", err)
 		}
 
 		return process, nil
 	}
 }
 
-func shutdownNode() {
+func shutdownNode() error {
 	process, err := os.FindProcess(Process.Id)
 	if err != nil {
-		logger.Error("could not find process to shutdown", "err", err)
-		// TODO(@christopher): Panic and shutdown all running processes
+		return fmt.Errorf("could not find process to shutdown: %s", err)
 	}
 
-	// Terminate the process
 	err = process.Signal(syscall.SIGTERM)
 	if err != nil {
-		// TODO(@christopher): Panic and shutdown all running processes
-		logger.Error("could not terminate process", "err", err)
-		return
+		return fmt.Errorf("could not terminate process: %s", err)
 	}
 
 	Process.Id = 0
 
-	logger.Info("process terminated successfully")
+	return nil
 }

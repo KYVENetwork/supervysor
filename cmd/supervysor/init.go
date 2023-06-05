@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/KYVENetwork/supervysor/types"
 	"os"
 	"path/filepath"
 
@@ -12,17 +13,6 @@ import (
 
 	"github.com/spf13/cobra"
 )
-
-type Config struct {
-	ChainId             string
-	BinaryPath          string
-	PoolId              int
-	Seeds               string
-	StateRequests       bool
-	Interval            int
-	HeightDifferenceMax int
-	HeightDifferenceMin int
-}
 
 var (
 	chainId    string
@@ -36,7 +26,7 @@ var (
 	// heightDifferenceMax int
 	// heightDifferenceMin int
 
-	cfg Config
+	cfg types.Config
 )
 
 func init() {
@@ -72,7 +62,7 @@ func init() {
 
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Initialize supverysor.",
+	Short: "Initialize supervysor",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return InitializeSupervysor()
 	},
@@ -100,7 +90,7 @@ func InitializeSupervysor() error {
 			}
 		}
 		logger.Info("initializing supverysor...")
-		config := Config{
+		config := types.Config{
 			ChainId:    chainId,
 			BinaryPath: binaryPath,
 			PoolId:     poolId,
@@ -114,45 +104,44 @@ func InitializeSupervysor() error {
 		}
 		b, err := toml.Marshal(config)
 		if err != nil {
-			panic(err)
+			logger.Error("could not unmarshal config", "err", err)
+			return err
 		}
 
 		err = os.WriteFile(configPath+"/config.toml", b, 0o755)
 		if err != nil {
-			logger.Error("couldn't write config file")
-			panic(err)
+			logger.Error("couldn't write config file", "err", err)
+			return err
 		}
 
 		_, err = getConfig()
 		if err != nil {
-			logger.Error("couldn't load config file")
+			logger.Error("couldn't load config file", "err", err)
 			return err
 		}
 
 		logger.Info(fmt.Sprintf("successfully initialized: config available at %s/config.toml", configPath))
 		return nil
 	} else {
+		logger.Error("could not get supervysor directory")
 		return err
 	}
 }
 
-func getConfig() (*Config, error) {
+func getConfig() (*types.Config, error) {
 	configPath, err := getSupervysorDir()
 	if err != nil {
-		logger.Error("couldn't get supervysor directory path")
-		return nil, err
+		return nil, fmt.Errorf("could not get supervysor directory path: %s", err)
 	}
 
 	data, err := os.ReadFile(configPath + "/config.toml")
 	if err != nil {
-		logger.Error("couldn't find config. Please initialize again")
-		return nil, err
+		return nil, fmt.Errorf("could not find config. Please initialize again: %s", err)
 	}
 
 	err = toml.Unmarshal(data, &cfg)
 	if err != nil {
-		logger.Error("couldn't unmarshal config")
-		panic(err)
+		return nil, fmt.Errorf("could not unsmarshal config: %s", err)
 	}
 
 	return &cfg, nil
@@ -161,8 +150,7 @@ func getConfig() (*Config, error) {
 func getSupervysorDir() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		logger.Error("couldn't find home directory")
-		return "", err
+		return "", fmt.Errorf("could not find home directory: %s", err)
 	}
 
 	return filepath.Join(home, ".supervysor"), nil

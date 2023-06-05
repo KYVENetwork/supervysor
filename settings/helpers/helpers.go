@@ -3,6 +3,7 @@ package helpers
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/KYVENetwork/supervysor/types"
 	"io"
 	"math"
 	"net/http"
@@ -12,16 +13,6 @@ import (
 
 	"cosmossdk.io/log"
 )
-
-type Response struct {
-	Pool struct {
-		Data struct {
-			CurrentKey     string `json:"current_key"`
-			UploadInterval string `json:"upload_interval"`
-			MaxBundleSize  string `json:"max_bundle_size"`
-		} `json:"data"`
-	} `json:"pool"`
-}
 
 var logger = log.NewLogger(os.Stdout)
 
@@ -48,11 +39,11 @@ func CalculateMaxDifference(maxBundleSize int, uploadInterval int) int {
 func GetPoolSettings(poolId int, chainId string) ([2]int, error) {
 	var poolEndpoint string
 	if chainId == "korellia" {
-		poolEndpoint = "https://api.korellia.kyve.network/kyve/query/v1beta1/pool/" + strconv.FormatInt(int64(poolId), 10)
+		poolEndpoint = types.KorelliaEndpoint + strconv.FormatInt(int64(poolId), 10)
 	} else if chainId == "kaon-1" {
-		poolEndpoint = "https://api-eu-1.kaon.kyve.network/kyve/query/v1beta1/pool/" + strconv.FormatInt(int64(poolId), 10)
+		poolEndpoint = types.KaonEndpoint + strconv.FormatInt(int64(poolId), 10)
 	} else if chainId == "kyve-1" {
-		poolEndpoint = "https://api-eu-1.kyve.network/kyve/query/v1beta1/pool/" + strconv.FormatInt(int64(poolId), 10)
+		poolEndpoint = types.MainnetEndpoint + strconv.FormatInt(int64(poolId), 10)
 	} else {
 		return [2]int{0, 0}, fmt.Errorf("unknown chainId (needs to be kyve-1, kaon-1 or korellia)")
 	}
@@ -68,7 +59,7 @@ func GetPoolSettings(poolId int, chainId string) ([2]int, error) {
 		return [2]int{}, err
 	}
 
-	var resp Response
+	var resp types.SettingsResponse
 	err = json.Unmarshal(responseData, &resp)
 	if err != nil {
 		logger.Error("couldn't unmarshal response", err.Error())

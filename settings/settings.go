@@ -2,36 +2,19 @@ package settings
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 
-	"cosmossdk.io/log"
-
 	"github.com/KYVENetwork/supervysor/settings/helpers"
+	"github.com/KYVENetwork/supervysor/types"
 )
 
-var logger = log.NewLogger(os.Stdout)
-
-type PoolSettingsType struct {
-	MaxBundleSize  int
-	UploadInterval int
-}
-
-type SettingsType struct {
-	MaxDifference int
-	Seeds         string
-	Interval      int
-	KeepEvery     int
-	KeepRecent    int
-}
-
-var poolSettings = PoolSettingsType{
+var poolSettings = types.PoolSettingsType{
 	MaxBundleSize:  0,
 	UploadInterval: 0,
 }
 
 // TODO(@christopher): Integrate into config.toml
-var Settings = SettingsType{
+var Settings = types.SettingsType{
 	MaxDifference: 0,
 	Seeds:         "",
 	Interval:      10,
@@ -43,8 +26,7 @@ var PruningCommands []string
 
 func InitializeSettings(binaryPath string, poolId int, stateRequests bool, seeds string, chainId string) error {
 	if err := helpers.CheckBinaryPath(binaryPath); err != nil {
-		logger.Error("couldn't resolve binary path", err)
-		return err
+		return fmt.Errorf("could not resolve binary path: %s", err)
 	}
 
 	Settings.Seeds = seeds
@@ -54,8 +36,7 @@ func InitializeSettings(binaryPath string, poolId int, stateRequests bool, seeds
 
 	settings, err := helpers.GetPoolSettings(poolId, chainId)
 	if err != nil {
-		logger.Error("couldn't get pool settings")
-		return err
+		return fmt.Errorf("could not get pool settings: %s", err)
 	}
 	poolSettings.MaxBundleSize = settings[0]
 	poolSettings.UploadInterval = settings[1]
@@ -63,7 +44,6 @@ func InitializeSettings(binaryPath string, poolId int, stateRequests bool, seeds
 	keepRecent := helpers.CalculateKeepRecent(poolSettings.MaxBundleSize, poolSettings.UploadInterval)
 
 	if keepRecent == 0 {
-		logger.Error("couldn't calculate keep-recent pruning settings")
 		return fmt.Errorf("keep-recent calculation failed, poolSettings are probably not correctly set")
 	}
 	Settings.KeepRecent = keepRecent
@@ -71,7 +51,6 @@ func InitializeSettings(binaryPath string, poolId int, stateRequests bool, seeds
 	maxDifference := helpers.CalculateMaxDifference(poolSettings.MaxBundleSize, poolSettings.UploadInterval)
 
 	if maxDifference == 0 {
-		logger.Error("couldn't calculate max-difference pruning settings")
 		return fmt.Errorf("max-difference calculation failed, poolSettings are probably not correctly set")
 	}
 	Settings.MaxDifference = maxDifference
@@ -95,6 +74,5 @@ func InitializeSettings(binaryPath string, poolId int, stateRequests bool, seeds
 			strconv.Itoa(Settings.KeepRecent),
 		}
 	}
-
 	return nil
 }
