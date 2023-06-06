@@ -1,42 +1,86 @@
 package helpers
 
 import (
+	"fmt"
+	"io"
 	"os"
-	"os/exec"
-
-	"cosmossdk.io/log"
+	"path/filepath"
 )
 
-var logger = log.NewLogger(os.Stdout)
+func MoveAddressBook(activateGhostMode bool, addrBookPath string) error {
+	if activateGhostMode {
+		parentDir := filepath.Dir(filepath.Dir(addrBookPath))
+		filename := filepath.Base(addrBookPath)
+		destPath := filepath.Join(parentDir, filename)
 
-func MoveAddressBook(ghostMode bool) {
-	if ghostMode {
-		// Move address book to right place, because mode will change from Ghost to Normal
-		source := "/root/.osmosisd/addrbook.json"
-		destination := "/root/.osmosisd/config/ "
-
-		cmd := exec.Command("mv", source, destination)
-
-		err := cmd.Run()
+		srcFile, err := os.Open(addrBookPath)
 		if err != nil {
-			logger.Error("could not move addrbook.json", "error", err)
-			return
+			return fmt.Errorf("could not open source address book file: %s", err)
+		}
+		defer func(srcFile *os.File) {
+			err := srcFile.Close()
+			if err != nil {
+				panic("could not close file")
+			}
+		}(srcFile)
+
+		destFile, err := os.Create(destPath)
+		if err != nil {
+			return fmt.Errorf("could not create new address book file: %s", err)
+		}
+		defer func(destFile *os.File) {
+			err := destFile.Close()
+			if err != nil {
+				panic("could not close file")
+			}
+		}(destFile)
+
+		_, err = io.Copy(destFile, srcFile)
+		if err != nil {
+			return fmt.Errorf("could not copy address book into new address book: %s", err)
 		}
 
-		logger.Info("address book successfully moved back", "destination", destination)
+		err = os.Remove(addrBookPath)
+		if err != nil {
+			return fmt.Errorf("could not delete source address book file: %s", err)
+		}
 	} else {
-		// Move address book to hidden place, because mode will change from Normal to Ghost
-		source := "/root/.osmosisd/config/addrbook.json"
-		destination := "/root/.osmosisd/ "
+		parentDir := filepath.Dir(filepath.Dir(addrBookPath))
+		filename := filepath.Base(addrBookPath)
+		sourcePath := filepath.Join(parentDir, filename)
 
-		cmd := exec.Command("mv", source, destination)
-
-		err := cmd.Run()
+		srcFile, err := os.Open(sourcePath)
 		if err != nil {
-			logger.Error("could not move addrbook.json", "err", err)
-			return
+			return fmt.Errorf("could not open source address book file: %s", err)
+		}
+		defer func(srcFile *os.File) {
+			err := srcFile.Close()
+			if err != nil {
+				panic("could not close file")
+			}
+		}(srcFile)
+
+		destFile, err := os.Create(addrBookPath)
+		if err != nil {
+			return fmt.Errorf("could not create new address book file: %s", err)
+		}
+		defer func(destFile *os.File) {
+			err := destFile.Close()
+			if err != nil {
+				panic("could not close file")
+			}
+		}(destFile)
+
+		_, err = io.Copy(destFile, srcFile)
+		if err != nil {
+			return fmt.Errorf("could not copy address book into new address book: %s", err)
 		}
 
-		logger.Info("address book moved", "destination", destination)
+		err = os.Remove(sourcePath)
+		if err != nil {
+			return fmt.Errorf("could not delete source address book file: %s", err)
+		}
 	}
+
+	return nil
 }

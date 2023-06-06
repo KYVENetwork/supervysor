@@ -21,7 +21,7 @@ var startCmd = &cobra.Command{
 			return err
 		}
 
-		if _, err := node.InitialStart(config.BinaryPath, config.Seeds); err != nil {
+		if _, err := node.InitialStart(config.BinaryPath, config.AddrBookPath, config.Seeds); err != nil {
 			logger.Error("initial start failed", "err", err)
 			return err
 		}
@@ -39,14 +39,14 @@ var startCmd = &cobra.Command{
 			diff := nodeHeight - *poolHeight
 
 			if diff >= config.HeightDifferenceMax {
-				if err = node.EnableGhostMode(config.BinaryPath); err != nil {
+				if err = node.EnableGhostMode(config.BinaryPath, config.AddrBookPath); err != nil {
 					logger.Error("could not enable Ghost Mode", "err", err)
 					return err
 				}
 			} else if diff < config.HeightDifferenceMax && diff > config.HeightDifferenceMin {
 				logger.Info("keeping current Mode", "height-difference", diff)
 			} else if diff <= config.HeightDifferenceMin && diff > 0 {
-				if err = node.DisableGhostMode(config.BinaryPath, config.Seeds); err != nil {
+				if err = node.DisableGhostMode(config.BinaryPath, config.AddrBookPath, config.Seeds); err != nil {
 					logger.Error("could not disable Ghost Mode", "err", err)
 					return err
 				}

@@ -17,7 +17,7 @@ import (
 
 var logger = log.NewLogger(os.Stdout)
 
-func CheckBinaryPath(path string) error {
+func CheckPath(path string) error {
 	_, err := exec.LookPath(path)
 	if err != nil {
 		return err

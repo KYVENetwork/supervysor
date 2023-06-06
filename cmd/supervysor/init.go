@@ -16,10 +16,11 @@ import (
 )
 
 var (
-	chainId    string
-	binaryPath string
-	poolId     int
-	seeds      string
+	chainId      string
+	binaryPath   string
+	addrBookPath string
+	poolId       int
+	seeds        string
 
 	// TODO(@christopher): Add custom supervysor settings
 	// stateRequests bool
@@ -39,6 +40,11 @@ func init() {
 	initCmd.Flags().StringVar(&binaryPath, "binary-path", "", "path to chain binaries (e.g. /root/go/bin/osmosisd")
 	if err := initCmd.MarkFlagRequired("binary-path"); err != nil {
 		panic(fmt.Errorf("flag 'binary-path' should be required: %w", err))
+	}
+
+	initCmd.Flags().StringVar(&binaryPath, "address-book-path", "", "path to address book (e.g. /root/.osmosisd/config/addrbook.json")
+	if err := initCmd.MarkFlagRequired("address-book-path"); err != nil {
+		panic(fmt.Errorf("flag 'address-book-path' should be required: %w", err))
 	}
 
 	initCmd.Flags().IntVar(&poolId, "pool-id", 0, "KYVE pool-id")
@@ -70,7 +76,7 @@ var initCmd = &cobra.Command{
 }
 
 func InitializeSupervysor() error {
-	if err := settings.InitializeSettings(binaryPath, poolId, false, seeds, chainId); err != nil {
+	if err := settings.InitializeSettings(binaryPath, addrBookPath, poolId, false, seeds, chainId); err != nil {
 		logger.Error("could not initialize settings", "err", err)
 		return err
 	}
@@ -92,10 +98,11 @@ func InitializeSupervysor() error {
 		}
 		logger.Info("initializing supverysor...")
 		config := types.Config{
-			ChainId:    chainId,
-			BinaryPath: binaryPath,
-			PoolId:     poolId,
-			Seeds:      seeds,
+			ChainId:      chainId,
+			BinaryPath:   binaryPath,
+			AddrBookPath: addrBookPath,
+			PoolId:       poolId,
+			Seeds:        seeds,
 
 			// TODO(@christopher): Add custom supervysor settings
 			Interval:            10,
@@ -111,13 +118,13 @@ func InitializeSupervysor() error {
 
 		err = os.WriteFile(configPath+"/config.toml", b, 0o755)
 		if err != nil {
-			logger.Error("couldn't write config file", "err", err)
+			logger.Error("could not write config file", "err", err)
 			return err
 		}
 
 		_, err = getConfig()
 		if err != nil {
-			logger.Error("couldn't load config file", "err", err)
+			logger.Error("could not load config file", "err", err)
 			return err
 		}
 

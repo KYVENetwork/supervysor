@@ -65,9 +65,12 @@ func GetNodeHeight() int {
 	}
 }
 
-func startNode(initial bool, binaryPath string, seeds string) (*os.Process, error) {
+func startNode(initial bool, binaryPath string, addrBookPath string, seeds string) (*os.Process, error) {
 	if !initial {
-		helpers.MoveAddressBook(Process.GhostMode)
+		if err := helpers.MoveAddressBook(Process.GhostMode, addrBookPath); err != nil {
+			logger.Error("could not move address book", "err", err)
+			return nil, err
+		}
 	}
 
 	if !(Process.Id == 0 && Process.GhostMode) && !initial {
@@ -141,8 +144,13 @@ func startNode(initial bool, binaryPath string, seeds string) (*os.Process, erro
 	}
 }
 
-func startGhostNode(binaryPath string) (*os.Process, error) {
-	helpers.MoveAddressBook(Process.GhostMode)
+func startGhostNode(binaryPath string, addrBookPath string) (*os.Process, error) {
+	if err := helpers.MoveAddressBook(Process.GhostMode, addrBookPath); err != nil {
+		logger.Error("could not move address book", "err", err)
+		return nil, err
+	}
+
+	logger.Info("address book successfully moved")
 
 	if !(Process.Id == 0 && !Process.GhostMode) {
 		// TODO(@christopher): Panic and stop all processes
