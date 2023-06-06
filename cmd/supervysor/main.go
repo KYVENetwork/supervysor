@@ -19,8 +19,9 @@ var supervysor = &cobra.Command{
 }
 
 func main() {
-	supervysor.AddCommand(startCmd)
 	supervysor.AddCommand(initCmd)
+	supervysor.AddCommand(startCmd)
+	supervysor.AddCommand(versionCmd)
 
 	if err := supervysor.Execute(); err != nil {
 		os.Exit(1)

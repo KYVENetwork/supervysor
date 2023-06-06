@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/KYVENetwork/supervysor/types"
 	"io"
 	"net/http"
 	"os"
@@ -13,6 +12,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/KYVENetwork/supervysor/types"
 
 	"github.com/KYVENetwork/supervysor/settings"
 

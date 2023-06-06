@@ -3,9 +3,10 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/KYVENetwork/supervysor/types"
 	"os"
 	"path/filepath"
+
+	"github.com/KYVENetwork/supervysor/types"
 
 	"github.com/KYVENetwork/supervysor/settings"
 

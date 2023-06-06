@@ -5,7 +5,6 @@ go 1.20
 require (
 	cosmossdk.io/log v1.1.0
 	github.com/golangci/golangci-lint v1.52.2
-	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.7.0
 	mvdan.cc/gofumpt v0.5.0
 )

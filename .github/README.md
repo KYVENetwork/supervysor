@@ -35,7 +35,42 @@ TODO(@christopher): Do I need a specific Go version?
 
 ## Installation
 
-TODO(@christopher)
+To install the latest version of `supervysor`, run the following command:
+
+```bash
+go install github.com/KYVENetwork/supervysor/cmd/supervysor@latest
+```
+
+To install a previous version, you can specify the version:
+
+```bash
+go install github.com/KYVENetwork/supervysor/cmd/supervysor@v0.1.0
+```
+
+_Optional:_ If you have issues to successfully run the `go install` command, make sure to export the following to your environment:
+
+```bash
+env GIT_TERMINAL_PROMPT=1
+```
+
+Run `supervysor version` to check the installed version.
+
+You can also install from source by pulling the supervysor repository and switching to the correct version and building
+as follows:
+
+```bash
+git clone git@github.com:KYVENetwork/supervysor.git
+cd supervysor
+git checkout tags/vx.x.x -b vx.x.x
+make supervysor
+```
+
+This will build supervysor in `/build` directory. Afterwards you may want to put it into your machine's PATH like
+as follows:
+
+```bash
+cp build/supervysor ~/go/bin/supervysor
+```
 
 ## Usage
 

@@ -3,10 +3,11 @@ package pool
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/KYVENetwork/supervysor/types"
 	"io"
 	"net/http"
 	"strconv"
+
+	"github.com/KYVENetwork/supervysor/types"
 )
 
 func GetPoolHeight(chainId string, poolId int) (*int, error) {

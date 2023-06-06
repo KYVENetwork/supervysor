@@ -3,13 +3,14 @@ package helpers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/KYVENetwork/supervysor/types"
 	"io"
 	"math"
 	"net/http"
 	"os"
 	"os/exec"
 	"strconv"
+
+	"github.com/KYVENetwork/supervysor/types"
 
 	"cosmossdk.io/log"
 )
