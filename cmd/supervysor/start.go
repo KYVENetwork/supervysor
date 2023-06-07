@@ -31,6 +31,9 @@ var startCmd = &cobra.Command{
 			poolHeight, err := pool.GetPoolHeight(config.ChainId, config.PoolId)
 			if err != nil {
 				logger.Error("couldn't get pool height", "err", err)
+				if shutdownErr := node.ShutdownNode(); shutdownErr != nil {
+					logger.Error("could not shutdown node process", "err", shutdownErr)
+				}
 				return err
 			}
 

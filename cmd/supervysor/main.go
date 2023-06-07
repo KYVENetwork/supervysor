@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/KYVENetwork/supervysor/node"
 	"os"
 
 	"cosmossdk.io/log"
@@ -25,9 +24,6 @@ func main() {
 	supervysor.AddCommand(versionCmd)
 
 	if err := supervysor.Execute(); err != nil {
-		if err := node.ShutdownNode(); err != nil {
-			logger.Info("could not shutdown node process", "err", err)
-		}
 		os.Exit(1)
 	}
 }
