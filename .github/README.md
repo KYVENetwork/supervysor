@@ -2,9 +2,7 @@
   <h1>@supervysor</h1>
 </div>
 
-<p align="center">
-<strong></strong>
-</p>
+![banner](../assets/banner.png)
 
 ## Content
 
