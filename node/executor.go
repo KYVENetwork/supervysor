@@ -2,7 +2,6 @@ package node
 
 import (
 	"fmt"
-	"os"
 )
 
 func InitialStart(binaryPath string, addrBookPath string, seeds string) (int, error) {
@@ -24,7 +23,7 @@ func EnableGhostMode(binaryPath string, addrBookPath string) error {
 	if !Process.GhostMode {
 		logger.Info("enabling Ghost Mode")
 
-		if err := shutdownNode(); err != nil {
+		if err := ShutdownNode(); err != nil {
 			logger.Error("could not shutdown node", "err", err)
 		}
 
@@ -50,7 +49,7 @@ func DisableGhostMode(binaryPath string, addrBookPath string, seeds string) erro
 	if Process.GhostMode {
 		logger.Info("disabling Ghost Mode")
 
-		if err := shutdownNode(); err != nil {
+		if err := ShutdownNode(); err != nil {
 			logger.Error("could not shutdown node", "err", err)
 		}
 
@@ -69,19 +68,5 @@ func DisableGhostMode(binaryPath string, addrBookPath string, seeds string) erro
 	} else {
 		logger.Info("keeping Normal Mode enabled")
 	}
-	return nil
-}
-
-func ShutdownProcess() error {
-	logger.Info("start to shutdown process", "pId", Process.Id)
-	proc, err := os.FindProcess(Process.Id)
-	if err != nil {
-		return fmt.Errorf("could not find process to shutdown: %s", err)
-	}
-
-	if err = proc.Kill(); err != nil {
-		return fmt.Errorf("could not shutdown process: %s", err)
-	}
-
 	return nil
 }
