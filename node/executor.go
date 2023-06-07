@@ -45,9 +45,9 @@ func EnableGhostMode(binaryPath string, addrBookPath string) error {
 	return nil
 }
 
-func DisableGhostMode(binaryPath string, addrBookPath string, seeds string) error {
+func EnableNormalMode(binaryPath string, addrBookPath string, seeds string) error {
 	if Process.GhostMode {
-		logger.Info("disabling Ghost Mode")
+		logger.Info("enable Normal Mode")
 
 		if err := ShutdownNode(); err != nil {
 			logger.Error("could not shutdown node", "err", err)

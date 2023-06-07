@@ -3,6 +3,7 @@ package settings
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/KYVENetwork/supervysor/settings/helpers"
 	"github.com/KYVENetwork/supervysor/types"
@@ -34,7 +35,7 @@ func InitializeSettings(binaryPath string, addrBookPath string, poolId int, stat
 	}
 
 	Settings.Seeds = seeds
-	if seeds == "" {
+	if strings.TrimSpace(seeds) == "" {
 		return fmt.Errorf("seeds are not defined")
 	}
 

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/KYVENetwork/supervysor/pool"
@@ -15,19 +14,23 @@ var startCmd = &cobra.Command{
 	Short: "Start a supervysed Tendermint node",
 	Args:  cobra.ExactArgs(0),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// Load initialized config.
 		config, err := getConfig()
 		if err != nil {
 			logger.Error("could not load config", "err", err)
 			return err
 		}
 
+		// Start data source node initially.
 		if err := node.InitialStart(config.BinaryPath, config.AddrBookPath, config.Seeds); err != nil {
 			logger.Error("initial start failed", "err", err)
 			return err
 		}
 
 		for {
+			// Request data source node height and KYVE pool height to calculate difference.
 			nodeHeight := node.GetNodeHeight()
+
 			poolHeight, err := pool.GetPoolHeight(config.ChainId, config.PoolId)
 			if err != nil {
 				logger.Error("couldn't get pool height", "err", err)
@@ -39,32 +42,36 @@ var startCmd = &cobra.Command{
 
 			logger.Info("fetched heights successfully", "node", nodeHeight, "pool", poolHeight)
 
-			diff := nodeHeight - *poolHeight
+			// Calculate height difference to enable the correct mode.
+			heightDiff := nodeHeight - *poolHeight
 
-			if diff >= config.HeightDifferenceMax {
+			if heightDiff >= config.HeightDifferenceMax {
+				// Data source node has synced far enough, enable or keep Ghost Mode
 				if err = node.EnableGhostMode(config.BinaryPath, config.AddrBookPath); err != nil {
 					logger.Error("could not enable Ghost Mode", "err", err)
+
 					if shutdownErr := node.ShutdownNode(); shutdownErr != nil {
 						logger.Error("could not shutdown node process", "err", shutdownErr)
 					}
 					return err
 				}
-			} else if diff < config.HeightDifferenceMax && diff > config.HeightDifferenceMin {
-				logger.Info("keeping current Mode", "height-difference", diff)
-			} else if diff <= config.HeightDifferenceMin && diff > 0 {
-				if err = node.DisableGhostMode(config.BinaryPath, config.AddrBookPath, config.Seeds); err != nil {
-					logger.Error("could not disable Ghost Mode", "err", err)
-					if shutdownErr := node.ShutdownNode(); shutdownErr != nil {
-						logger.Error("could not shutdown node process", "err", shutdownErr)
-					}
-					return err
-				}
+			} else if heightDiff < config.HeightDifferenceMax && heightDiff > config.HeightDifferenceMin {
+				// No threshold reached, keep current mode
+				logger.Info("keeping current Mode", "height-difference", heightDiff)
 			} else {
-				if err = node.ShutdownNode(); err != nil {
-					logger.Error("could not shutdown node process", "err", err)
+				// Difference is < HeightDifferenceMin, Data source needs to catch up, enable or keep Normal Mode
+				if err = node.EnableNormalMode(config.BinaryPath, config.AddrBookPath, config.Seeds); err != nil {
+					logger.Error("could not enable Normal Mode", "err", err)
+
+					if shutdownErr := node.ShutdownNode(); shutdownErr != nil {
+						logger.Error("could not shutdown node process", "err", shutdownErr)
+					}
+					return err
 				}
-				logger.Info("node process successfully shut down")
-				return fmt.Errorf("negative difference between node and pool heights")
+				// Diff < 0, can't use node as data source
+				if heightDiff <= 0 {
+					logger.Info("node has not reached pool height yet, can not use it as data source")
+				}
 			}
 			time.Sleep(time.Second * time.Duration(config.Interval))
 		}
