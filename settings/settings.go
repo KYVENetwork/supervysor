@@ -25,11 +25,11 @@ var Settings = types.SettingsType{
 var PruningCommands []string
 
 func InitializeSettings(binaryPath string, addrBookPath string, poolId int, stateRequests bool, seeds string, chainId string) error {
-	if err := helpers.CheckPath(binaryPath); err != nil {
+	if err := helpers.CheckBinaryPath(binaryPath); err != nil {
 		return fmt.Errorf("could not resolve binary path: %s", err)
 	}
 
-	if err := helpers.CheckPath(addrBookPath); err != nil {
+	if err := helpers.CheckFilePath(addrBookPath); err != nil {
 		return fmt.Errorf("could not resolve address book path: %s", err)
 	}
 

@@ -37,12 +37,12 @@ func init() {
 		panic(fmt.Errorf("flag 'chain-id' should be required: %w", err))
 	}
 
-	initCmd.Flags().StringVar(&binaryPath, "binary-path", "", "path to chain binaries (e.g. /root/go/bin/osmosisd")
+	initCmd.Flags().StringVar(&binaryPath, "binary-path", "", "path to chain binaries (e.g. /root/go/bin/osmosisd)")
 	if err := initCmd.MarkFlagRequired("binary-path"); err != nil {
 		panic(fmt.Errorf("flag 'binary-path' should be required: %w", err))
 	}
 
-	initCmd.Flags().StringVar(&addrBookPath, "address-book-path", "", "path to address book (e.g. /root/.osmosisd/config/addrbook.json")
+	initCmd.Flags().StringVar(&addrBookPath, "address-book-path", "", "path to address book (e.g. /root/.osmosisd/config/addrbook.json)")
 	if err := initCmd.MarkFlagRequired("address-book-path"); err != nil {
 		panic(fmt.Errorf("flag 'address-book-path' should be required: %w", err))
 	}
