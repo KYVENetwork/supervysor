@@ -121,12 +121,12 @@ cosmovisor run start [flags]
 With your node being able to run using Cosmovisor, you can install the supervysor to start optimize this process for KYVE purposes. After the [installation](#installation), you can initialize the supervysor with the following command:
 
 ```bash
-supervysor init
---address-book-path '/root/.osmosisd/config/addrbook.json'
---binary-path       '/root/go/bin/cosmovisor'
---chain-id          'kaon-1'
---pool-id           1
---seeds             '21d7539792ee2e0d650b199bf742c56ae0cf499e@162.55.132.230:2000,44ff091135ef2c69421eacfa136860472ac26e60@65.21.141.212:2000,ec4d3571bf709ab78df61716e47b5ac03d077a1a@65.108.43.26:2000'
+supervysor init \
+--address-book-path '/root/.osmosisd/config/addrbook.json' \
+--binary-path '/root/go/bin/cosmovisor' \
+--chain-id 'korellia' \
+--pool-id 27 \
+--seeds '21d7539792ee2e0d650b199bf742c56ae0cf499e@162.55.132.230:2000,44ff091135ef2c69421eacfa136860472ac26e60@65.21.141.212:2000,ec4d3571bf709ab78df61716e47b5ac03d077a1a@65.108.43.26:2000,4cb8e1e089bdf44741b32638591944dc15b7cce3@65.108.73.18:2000'
 ```
 
 After the successful initialisation you can start your node with:
@@ -135,6 +135,4 @@ After the successful initialisation you can start your node with:
 supervysor start
 ```
 
-The supervysor then will start an Osmosis node as data source for the pool with the ID 1 of the KYVE Kaon Network.
-
-_Note: The shown pool for the example haven't been created yet._
+The supervysor then will start an Osmosis node as data source for the pool with the ID 27 of the Korellia network.
