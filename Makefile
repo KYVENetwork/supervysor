@@ -1,4 +1,4 @@
-VERSION := dev
+VERSION := v0.1.0
 
 ldflags := $(LDFLAGS)
 ldflags += -X main.Version=$(VERSION)
