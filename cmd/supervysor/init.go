@@ -37,7 +37,7 @@ func init() {
 		panic(fmt.Errorf("flag 'chain-id' should be required: %w", err))
 	}
 
-	initCmd.Flags().StringVar(&binaryPath, "binary-path", "", "path to chain binaries (e.g. /root/go/bin/osmosisd)")
+	initCmd.Flags().StringVar(&binaryPath, "binary-path", "", "path to chain binaries or cosmovisor (e.g. /root/go/bin/cosmovisor)")
 	if err := initCmd.MarkFlagRequired("binary-path"); err != nil {
 		panic(fmt.Errorf("flag 'binary-path' should be required: %w", err))
 	}

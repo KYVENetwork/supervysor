@@ -40,7 +40,7 @@ var startCmd = &cobra.Command{
 				return err
 			}
 
-			logger.Info("fetched heights successfully", "node", nodeHeight, "pool", poolHeight, "target-height", nodeHeight+config.HeightDifferenceMax)
+			logger.Info("fetched heights successfully", "node", nodeHeight, "pool", poolHeight, "current-target-height", nodeHeight+config.HeightDifferenceMax)
 
 			// Calculate height difference to enable the correct mode.
 			heightDiff := nodeHeight - *poolHeight
