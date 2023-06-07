@@ -54,6 +54,7 @@ var startCmd = &cobra.Command{
 				if err = node.ShutodwnProcess(); err != nil {
 					logger.Error("could not shutdown process", "err", err)
 				}
+				logger.Info("node process successfully shut down")
 				return fmt.Errorf("negative difference between node and pool heights")
 			}
 			time.Sleep(time.Second * time.Duration(config.Interval))
