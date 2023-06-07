@@ -2,6 +2,7 @@ package node
 
 import (
 	"fmt"
+	"os"
 )
 
 func InitialStart(binaryPath string, addrBookPath string, seeds string) (int, error) {
@@ -68,5 +69,18 @@ func DisableGhostMode(binaryPath string, addrBookPath string, seeds string) erro
 	} else {
 		logger.Info("keeping Normal Mode enabled")
 	}
+	return nil
+}
+
+func ShutodwnProcess() error {
+	proc, err := os.FindProcess(Process.Id)
+	if err != nil {
+		return fmt.Errorf("could not find process to shutdown: %s", err)
+	}
+
+	if err = proc.Kill(); err != nil {
+		return fmt.Errorf("could not shutdown process: %s", err)
+	}
+
 	return nil
 }

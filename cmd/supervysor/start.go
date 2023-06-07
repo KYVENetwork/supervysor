@@ -1,7 +1,7 @@
 package main
 
 import (
-	"os"
+	"fmt"
 	"time"
 
 	"github.com/KYVENetwork/supervysor/pool"
@@ -51,8 +51,10 @@ var startCmd = &cobra.Command{
 					return err
 				}
 			} else {
-				logger.Error("negative difference between node and pool heights")
-				os.Exit(1)
+				if err = node.ShutodwnProcess(); err != nil {
+					logger.Error("could not shutdown process", "err", err)
+				}
+				return fmt.Errorf("negative difference between node and pool heights")
 			}
 			time.Sleep(time.Second * time.Duration(config.Interval))
 		}
