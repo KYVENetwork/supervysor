@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"os"
 	"time"
 
 	"github.com/KYVENetwork/supervysor/pool"
@@ -51,7 +51,8 @@ var startCmd = &cobra.Command{
 					return err
 				}
 			} else {
-				return fmt.Errorf("negative difference between node and pool heights")
+				logger.Error("negative difference between node and pool heights")
+				os.Exit(1)
 			}
 			time.Sleep(time.Second * time.Duration(config.Interval))
 		}
