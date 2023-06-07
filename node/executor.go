@@ -72,7 +72,8 @@ func DisableGhostMode(binaryPath string, addrBookPath string, seeds string) erro
 	return nil
 }
 
-func ShutodwnProcess() error {
+func ShutdownProcess() error {
+	logger.Info("start to shutdown process", "pId", Process.Id)
 	proc, err := os.FindProcess(Process.Id)
 	if err != nil {
 		return fmt.Errorf("could not find process to shutdown: %s", err)

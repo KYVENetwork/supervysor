@@ -51,7 +51,7 @@ var startCmd = &cobra.Command{
 					return err
 				}
 			} else {
-				if err = node.ShutodwnProcess(); err != nil {
+				if err = node.ShutdownProcess(); err != nil {
 					logger.Error("could not shutdown process", "err", err)
 				}
 				logger.Info("node process successfully shut down")
