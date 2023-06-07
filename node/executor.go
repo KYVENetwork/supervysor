@@ -4,11 +4,11 @@ import (
 	"fmt"
 )
 
-func InitialStart(binaryPath string, addrBookPath string, seeds string) (int, error) {
+func InitialStart(binaryPath string, addrBookPath string, seeds string) error {
 	logger.Info("starting initially")
 	process, err := startNode(true, binaryPath, addrBookPath, seeds)
 	if err != nil {
-		return 0, fmt.Errorf("could not start node initially: %s", err)
+		return fmt.Errorf("could not start node initially: %s", err)
 	}
 
 	logger.Info("initial process started", "pId", process.Pid)
@@ -16,7 +16,7 @@ func InitialStart(binaryPath string, addrBookPath string, seeds string) (int, er
 	Process.Id = process.Pid
 	Process.GhostMode = false
 
-	return process.Pid, nil
+	return nil
 }
 
 func EnableGhostMode(binaryPath string, addrBookPath string) error {

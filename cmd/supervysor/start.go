@@ -21,7 +21,7 @@ var startCmd = &cobra.Command{
 			return err
 		}
 
-		if _, err := node.InitialStart(config.BinaryPath, config.AddrBookPath, config.Seeds); err != nil {
+		if err := node.InitialStart(config.BinaryPath, config.AddrBookPath, config.Seeds); err != nil {
 			logger.Error("initial start failed", "err", err)
 			return err
 		}
@@ -41,6 +41,9 @@ var startCmd = &cobra.Command{
 			if diff >= config.HeightDifferenceMax {
 				if err = node.EnableGhostMode(config.BinaryPath, config.AddrBookPath); err != nil {
 					logger.Error("could not enable Ghost Mode", "err", err)
+					if shutdownErr := node.ShutdownNode(); shutdownErr != nil {
+						logger.Error("could not shutdown node process", "err", shutdownErr)
+					}
 					return err
 				}
 			} else if diff < config.HeightDifferenceMax && diff > config.HeightDifferenceMin {
@@ -48,6 +51,9 @@ var startCmd = &cobra.Command{
 			} else if diff <= config.HeightDifferenceMin && diff > 0 {
 				if err = node.DisableGhostMode(config.BinaryPath, config.AddrBookPath, config.Seeds); err != nil {
 					logger.Error("could not disable Ghost Mode", "err", err)
+					if shutdownErr := node.ShutdownNode(); shutdownErr != nil {
+						logger.Error("could not shutdown node process", "err", shutdownErr)
+					}
 					return err
 				}
 			} else {

@@ -225,16 +225,18 @@ func startGhostNode(binaryPath string, addrBookPath string) (*os.Process, error)
 }
 
 func ShutdownNode() error {
-	process, err := os.FindProcess(Process.Id)
-	if err != nil {
-		return fmt.Errorf("could not find process to shutdown: %s", err)
-	}
+	if Process.Id != 0 {
+		process, err := os.FindProcess(Process.Id)
+		if err != nil {
+			return fmt.Errorf("could not find process to shutdown: %s", err)
+		}
 
-	if err = process.Signal(syscall.SIGTERM); err != nil {
-		return fmt.Errorf("could not terminate process: %s", err)
-	}
+		if err = process.Signal(syscall.SIGTERM); err != nil {
+			return fmt.Errorf("could not terminate process: %s", err)
+		}
 
-	Process.Id = 0
+		Process.Id = 0
+	}
 
 	return nil
 }
