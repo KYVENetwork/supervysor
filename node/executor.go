@@ -59,7 +59,7 @@ func EnableNormalMode(binaryPath string, addrBookPath string, seeds string) erro
 		} else {
 			if process != nil && process.Pid > 0 {
 				Process.Id = process.Pid
-				Process.GhostMode = true
+				Process.GhostMode = false
 				logger.Info("Node started in Normal Mode", "pId", process.Pid)
 			} else {
 				return fmt.Errorf("Ghost Mode disabling failed: process is not defined")

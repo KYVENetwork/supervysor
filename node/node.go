@@ -33,7 +33,7 @@ func GetNodeHeight() int {
 		logger.Info("node hasn't started yet. Try again in 5s ...")
 
 		time.Sleep(time.Second * 5)
-		GetNodeHeight()
+		return GetNodeHeight()
 	}
 
 	response, err := http.Get(types.ABCIEndpoint)
@@ -67,7 +67,7 @@ func GetNodeHeight() int {
 
 func startNode(initial bool, binaryPath string, addrBookPath string, seeds string) (*os.Process, error) {
 	if !initial {
-		if err := helpers.MoveAddressBook(Process.GhostMode, addrBookPath); err != nil {
+		if err := helpers.MoveAddressBook(false, addrBookPath); err != nil {
 			logger.Error("could not move address book", "err", err)
 			return nil, err
 		}
@@ -77,9 +77,6 @@ func startNode(initial bool, binaryPath string, addrBookPath string, seeds strin
 		// TODO(@christopher): Panic and stop all processes
 		return nil, nil
 	} else {
-		// TODO(@christopher): Support pruning choice between default, everything and custom pruning setting with recommended settings on default (keeping 1 week backup based on pool settings).
-		// TODO(@christopher): Support pruning for state requests (e.g. spot-price -> pricing integration).
-
 		cmdPath, err := exec.LookPath(binaryPath)
 		if err != nil {
 			return nil, fmt.Errorf("could not resolve binary path: %s", err)
@@ -124,7 +121,7 @@ func startNode(initial bool, binaryPath string, addrBookPath string, seeds strin
 			// Wait for process end
 			err = cmd.Wait()
 			if err != nil {
-				// Process can only be stopped through an error, which is why we don't need to log it
+				// Process can only be stopped through an error, not necessary to log an error
 				processIDChan <- -1
 			}
 		}()
@@ -145,7 +142,7 @@ func startNode(initial bool, binaryPath string, addrBookPath string, seeds strin
 }
 
 func startGhostNode(binaryPath string, addrBookPath string) (*os.Process, error) {
-	if err := helpers.MoveAddressBook(Process.GhostMode, addrBookPath); err != nil {
+	if err := helpers.MoveAddressBook(true, addrBookPath); err != nil {
 		logger.Error("could not move address book", "err", err)
 		return nil, err
 	}
