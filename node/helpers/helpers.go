@@ -9,6 +9,7 @@ import (
 
 func MoveAddressBook(activateGhostMode bool, addrBookPath string) error {
 	if activateGhostMode {
+		// TODO(@christopher): Check if addrbook needs to be moved
 		parentDir := filepath.Dir(filepath.Dir(addrBookPath))
 		filename := filepath.Base(addrBookPath)
 		destPath := filepath.Join(parentDir, filename)
@@ -45,6 +46,7 @@ func MoveAddressBook(activateGhostMode bool, addrBookPath string) error {
 			return fmt.Errorf("could not delete source address book file: %s", err)
 		}
 	} else {
+		// TODO(@christopher): Check if addrbook needs to be moved
 		parentDir := filepath.Dir(filepath.Dir(addrBookPath))
 		filename := filepath.Base(addrBookPath)
 		sourcePath := filepath.Join(parentDir, filename)
