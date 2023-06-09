@@ -35,13 +35,13 @@ func CheckFilePath(path string) error {
 func CalculateKeepRecent(maxBundleSize int, uploadInterval int) int {
 	return int(
 		math.Round(
-			float64(maxBundleSize) / float64(uploadInterval) * 60 * 60 * 24 * 7))
+			float64(maxBundleSize) / float64(uploadInterval) * 60 * 60 * 24 * 2))
 }
 
 func CalculateMaxDifference(maxBundleSize int, uploadInterval int) int {
 	return int(
 		math.Round(
-			float64(maxBundleSize) / float64(uploadInterval) * 60 * 60 * 24 * 5))
+			float64(maxBundleSize) / float64(uploadInterval) * 60 * 60 * 24 * 1))
 }
 
 func GetPoolSettings(poolId int, chainId string) ([2]int, error) {

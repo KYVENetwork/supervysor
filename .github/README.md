@@ -27,14 +27,14 @@ The supervysor is a process manager that is wrapped around a node or the cosmovi
 
 To keep memory requirements as low as possible, we need to specify both a maximum value for how far the data source node can synchronize beyond the current pool height and the matching pruning settings to make sure that not validated data can be pruned. Derived from this, these values were calculated as followed:
 
-* `min_retain_blocks = max_bundle_size / upload_interval * 60 * 60 * 24 * 7` (maximum bundles for 7 days)
-* `height_difference_max = max_bundle_size / upload_interval * 60 * 60 * 24 * 7` (maximum bundles for 5 days)
-* `height_difference_min = height_difference_max` (maximum bundles for 2.5 days)
+* `min_retain_blocks = max_bundle_size / upload_interval * 60 * 60 * 24 * 2` (maximum bundles for 2 days)
+* `height_difference_max = max_bundle_size / upload_interval * 60 * 60 * 24 * 1` (maximum bundles for 1 day)
+* `height_difference_min = height_difference_max` (maximum bundles for 0.5 day)
 
 These values ensure that
-* the data source node will always be 2.5 days ahead to the latest pool-height
-* the data source node will not sync to the latest height, because it will stop syncing when the required blocks for the next 5 days are stored locally
-* only the required blocks for the next 7 days are kept locally, everything else will be pruned
+* the data source node will always be 0.5 days ahead to the latest pool-height
+* the data source node will not sync to the latest height, because it will stop syncing when the required blocks for the next 1 day are stored locally
+* only the required blocks for the next 2 days are kept locally, everything else will be pruned
 * because `min_retain_blocks > height_difference_max`, nothing will be pruned before it was validated in the data pool 
 
 _Note: Currently these settings are static and not usable for integrations with state requests. This will be part of one of the next versions and will be published in a few weeks._

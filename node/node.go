@@ -88,15 +88,15 @@ func startNode(initial bool, binaryPath string, addrBookPath string, seeds strin
 			args = []string{
 				"run",
 				"start",
-				"--p2p.seeds",
-				seeds,
 			}
 		} else {
 			args = []string{
 				"start",
-				"--p2p.seeds",
-				seeds,
 			}
+		}
+
+		if initial {
+			args = append(args, "--p2p-seeds", seeds)
 		}
 
 		mergedArgs := append(args, settings.PruningCommands...)
