@@ -37,10 +37,20 @@ func GetPoolHeight(chainId string, poolId int) (*int, error) {
 		return nil, fmt.Errorf("failed unmarshalling KYVE endpoint response: %s", err)
 	}
 
+	var poolHeight int
 	currentKey := resp.Pool.Data.CurrentKey
-	poolHeight, err := strconv.Atoi(currentKey)
-	if err != nil {
-		return nil, fmt.Errorf("could not convert poolHeight to int: %s", err)
+
+	if currentKey == "" {
+		startKey := resp.Pool.Data.StartKey
+		poolHeight, err = strconv.Atoi(startKey)
+		if err != nil {
+			return nil, fmt.Errorf("could not convert poolHeight from start_key to int: %s", err)
+		}
+	} else {
+		poolHeight, err = strconv.Atoi(currentKey)
+		if err != nil {
+			return nil, fmt.Errorf("could not convert poolHeight from current_key to int: %s", err)
+		}
 	}
 
 	return &poolHeight, err
