@@ -118,7 +118,7 @@ Verify the correct installation and setup with the successful start of the node:
 cosmovisor run start [flags]
 ```
 
-With your node being able to run using Cosmovisor, you can install the supervysor to start optimize this process for KYVE purposes. After the [installation](#installation), you can initialize the supervysor with the following command:
+With your node being able to run using Cosmovisor, you can stop the process and install the supervysor to start optimize this process for KYVE purposes. After the [installation](#installation), you can initialize the supervysor with the following command:
 
 ```bash
 supervysor init \
@@ -126,7 +126,7 @@ supervysor init \
 --binary-path '/root/go/bin/cosmovisor' \
 --chain-id 'korellia' \
 --pool-id 27 \
---seeds '21d7539792ee2e0d650b199bf742c56ae0cf499e@162.55.132.230:2000,44ff091135ef2c69421eacfa136860472ac26e60@65.21.141.212:2000,ec4d3571bf709ab78df61716e47b5ac03d077a1a@65.108.43.26:2000,4cb8e1e089bdf44741b32638591944dc15b7cce3@65.108.73.18:2000'
+--seeds '6bcdbcfd5d2c6ba58460f10dbcfde58278212833@osmosis.artifact-staking.io:26656,ade4d8bc8cbe014af6ebdf3cb7b1e9ad36f412c0@seeds.polkachu.com:12556'
 ```
 
 After the successful initialisation you can start your node with:

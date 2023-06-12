@@ -6,6 +6,7 @@ type Config struct {
 	AddrBookPath        string
 	PoolId              int
 	Seeds               string
+	FallbackEndpoints   string
 	StateRequests       bool
 	Interval            int
 	HeightDifferenceMax int

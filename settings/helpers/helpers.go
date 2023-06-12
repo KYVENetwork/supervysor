@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 
 	"github.com/KYVENetwork/supervysor/types"
 
@@ -44,17 +45,32 @@ func CalculateMaxDifference(maxBundleSize int, uploadInterval int) int {
 			float64(maxBundleSize) / float64(uploadInterval) * 60 * 60 * 24 * 1))
 }
 
-func GetPoolSettings(poolId int, chainId string) ([2]int, error) {
-	var poolEndpoint string
+func GetPoolSettings(poolId int, chainId string, fallbackEndpoints string) ([2]int, error) {
+	var endpoints []string
+	var err error
+
 	if chainId == "korellia" {
-		poolEndpoint = types.KorelliaEndpoint + strconv.FormatInt(int64(poolId), 10)
+		endpoints = types.KorelliaEndpoints
 	} else if chainId == "kaon-1" {
-		poolEndpoint = types.KaonEndpoint + strconv.FormatInt(int64(poolId), 10)
+		endpoints = types.KaonEndpoints
 	} else if chainId == "kyve-1" {
-		poolEndpoint = types.MainnetEndpoint + strconv.FormatInt(int64(poolId), 10)
+		endpoints = types.MainnetEndpoints
 	} else {
-		return [2]int{0, 0}, fmt.Errorf("unknown chainId (needs to be kyve-1, kaon-1 or korellia)")
+		return [2]int{}, fmt.Errorf("unknown chainId")
 	}
+
+	for _, endpoint := range append(endpoints, strings.Split(fallbackEndpoints, ",")...) {
+		if height, err := requestPoolSettings(poolId, endpoint); err != nil {
+			return height, err
+		}
+	}
+
+	return [2]int{}, err
+}
+
+func requestPoolSettings(poolId int, endpoint string) ([2]int, error) {
+	poolEndpoint := endpoint + "/kyve/query/v1beta1/pool/" + strconv.FormatInt(int64(poolId), 10)
+
 	response, err := http.Get(poolEndpoint)
 	if err != nil {
 		logger.Error("API isn't available", err.Error())

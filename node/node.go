@@ -28,40 +28,44 @@ var Process = types.ProcessType{
 	GhostMode: true,
 }
 
-func GetNodeHeight() int {
-	if Process.Id == 0 {
-		logger.Info("node hasn't started yet. Try again in 5s ...")
+func GetNodeHeight(recursionDepth int) (int, error) {
+	if recursionDepth < 5 {
+		if Process.Id == 0 {
+			logger.Info(fmt.Sprintf("node hasn't started yet. Try again in 5s ... %d/5", recursionDepth+1))
 
-		time.Sleep(time.Second * 5)
-		return GetNodeHeight()
-	}
+			time.Sleep(time.Second * 5)
+			return GetNodeHeight(recursionDepth + 1)
+		}
 
-	response, err := http.Get(types.ABCIEndpoint)
+		response, err := http.Get(types.ABCIEndpoint)
 
-	if err != nil {
-		logger.Error("failed to query height. Try again in 5s ...")
+		if err != nil {
+			logger.Error("failed to query height. Try again in 5s ...")
 
-		time.Sleep(time.Second * 5)
-		return GetNodeHeight()
+			time.Sleep(time.Second * 5)
+			return GetNodeHeight(recursionDepth + 1)
+		} else {
+			responseData, err := io.ReadAll(response.Body)
+			if err != nil {
+				logger.Error("could not read response data", "err", err.Error())
+			}
+
+			var resp types.HeightResponse
+			err = json.Unmarshal(responseData, &resp)
+			if err != nil {
+				logger.Error("could not unmarshal JSON", "err", err.Error())
+			}
+
+			lastBlockHeight := resp.Result.Response.LastBlockHeight
+			nodeHeight, err := strconv.Atoi(lastBlockHeight)
+			if err != nil {
+				logger.Error("could not convert lastBlockHeight to str", "err", err.Error())
+			}
+
+			return nodeHeight, nil
+		}
 	} else {
-		responseData, err := io.ReadAll(response.Body)
-		if err != nil {
-			logger.Error("could not read response data", "err", err.Error())
-		}
-
-		var resp types.HeightResponse
-		err = json.Unmarshal(responseData, &resp)
-		if err != nil {
-			logger.Error("could not unmarshal JSON", "err", err.Error())
-		}
-
-		lastBlockHeight := resp.Result.Response.LastBlockHeight
-		nodeHeight, err := strconv.Atoi(lastBlockHeight)
-		if err != nil {
-			logger.Error("could not convert lastBlockHeight to str", "err", err.Error())
-		}
-
-		return nodeHeight
+		return 0, fmt.Errorf("could not get node height, exiting ...")
 	}
 }
 

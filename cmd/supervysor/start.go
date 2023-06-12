@@ -29,11 +29,18 @@ var startCmd = &cobra.Command{
 
 		for {
 			// Request data source node height and KYVE pool height to calculate difference.
-			nodeHeight := node.GetNodeHeight()
-
-			poolHeight, err := pool.GetPoolHeight(config.ChainId, config.PoolId)
+			nodeHeight, err := node.GetNodeHeight(0)
 			if err != nil {
-				logger.Error("couldn't get pool height", "err", err)
+				logger.Error("could not get node height", "err", err)
+				if shutdownErr := node.ShutdownNode(); shutdownErr != nil {
+					logger.Error("could not shutdown node process", "err", shutdownErr)
+				}
+				return err
+			}
+
+			poolHeight, err := pool.GetPoolHeight(config.ChainId, config.PoolId, config.FallbackEndpoints)
+			if err != nil {
+				logger.Error("could not get pool height", "err", err)
 				if shutdownErr := node.ShutdownNode(); shutdownErr != nil {
 					logger.Error("could not shutdown node process", "err", shutdownErr)
 				}

@@ -25,7 +25,7 @@ var Settings = types.SettingsType{
 
 var PruningCommands []string
 
-func InitializeSettings(binaryPath string, addrBookPath string, poolId int, stateRequests bool, seeds string, chainId string) error {
+func InitializeSettings(binaryPath string, addrBookPath string, poolId int, stateRequests bool, seeds string, chainId string, fallbackEndpoints string) error {
 	if err := helpers.CheckBinaryPath(binaryPath); err != nil {
 		return fmt.Errorf("could not resolve binary path: %s", err)
 	}
@@ -39,7 +39,7 @@ func InitializeSettings(binaryPath string, addrBookPath string, poolId int, stat
 		return fmt.Errorf("seeds are not defined")
 	}
 
-	settings, err := helpers.GetPoolSettings(poolId, chainId)
+	settings, err := helpers.GetPoolSettings(poolId, chainId, fallbackEndpoints)
 	if err != nil {
 		return fmt.Errorf("could not get pool settings: %s", err)
 	}

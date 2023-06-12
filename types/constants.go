@@ -1,8 +1,21 @@
 package types
 
 const (
-	ABCIEndpoint     = "http://localhost:26657/abci_info?"
-	KaonEndpoint     = "https://api-eu-1.kaon.kyve.network/kyve/query/v1beta1/pool/"
-	KorelliaEndpoint = "https://api.korellia.kyve.network/kyve/query/v1beta1/pool/"
-	MainnetEndpoint  = "https://api-eu-1.kyve.network/kyve/query/v1beta1/pool/"
+	ABCIEndpoint = "http://127.0.0.1:26657/abci_info?"
+)
+
+var (
+	KaonEndpoints = []string{
+		"https://api-eu-1.kaon.kyve.network",
+		"https://api-us-1.kaon.kyve.network",
+	}
+	KorelliaEndpoints = []string{
+		"https://api.korellia.kyve.network",
+		"https://api-eu-1.korellia.kyve.network",
+		"https://api-explorer.korellia.kyve.network",
+	}
+	MainnetEndpoints = []string{
+		"https://api-eu-1.kyve.network",
+		"https://api-us-1.kyve.network",
+	}
 )

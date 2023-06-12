@@ -6,21 +6,36 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/KYVENetwork/supervysor/types"
 )
 
-func GetPoolHeight(chainId string, poolId int) (*int, error) {
-	var poolEndpoint string
+func GetPoolHeight(chainId string, poolId int, fallbackEndpoints string) (*int, error) {
+	var endpoints []string
+	var err error
+
 	if chainId == "korellia" {
-		poolEndpoint = types.KorelliaEndpoint + strconv.FormatInt(int64(poolId), 10)
+		endpoints = types.KorelliaEndpoints
 	} else if chainId == "kaon-1" {
-		poolEndpoint = types.KaonEndpoint + strconv.FormatInt(int64(poolId), 10)
+		endpoints = types.KaonEndpoints
 	} else if chainId == "kyve-1" {
-		poolEndpoint = types.MainnetEndpoint + strconv.FormatInt(int64(poolId), 10)
+		endpoints = types.MainnetEndpoints
 	} else {
-		return nil, fmt.Errorf("unknown chainId (needs to be kyve-1, kaon-1 or korellia)")
+		return nil, fmt.Errorf("unknown chainId")
 	}
+
+	for _, endpoint := range append(endpoints, strings.Split(fallbackEndpoints, ",")...) {
+		if height, err := requestPoolHeight(poolId, endpoint); err != nil {
+			return height, err
+		}
+	}
+	return nil, err
+}
+
+func requestPoolHeight(poolId int, endpoint string) (*int, error) {
+	poolEndpoint := endpoint + "/kyve/query/v1beta1/pool/" + strconv.FormatInt(int64(poolId), 10)
+
 	response, err := http.Get(poolEndpoint)
 	if err != nil {
 		return nil, fmt.Errorf("failed requesting KYVE endpoint: %s", err)
