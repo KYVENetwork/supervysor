@@ -31,7 +31,7 @@ var Process = types.ProcessType{
 func GetNodeHeight(recursionDepth int) (int, error) {
 	if recursionDepth < 5 {
 		if Process.Id == 0 {
-			logger.Info(fmt.Sprintf("node hasn't started yet. Try again in 5s ... %d/5", recursionDepth+1))
+			logger.Info(fmt.Sprintf("node hasn't started yet. Try again in 5s ... (%d/5)", recursionDepth+1))
 
 			time.Sleep(time.Second * 5)
 			return GetNodeHeight(recursionDepth + 1)

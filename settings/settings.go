@@ -60,6 +60,10 @@ func InitializeSettings(binaryPath string, addrBookPath string, poolId int, stat
 	}
 	Settings.MaxDifference = maxDifference
 
+	if maxDifference > keepRecent {
+		return fmt.Errorf("max-difference can not be > keep-recent")
+	}
+
 	if stateRequests {
 		PruningCommands = []string{
 			"--pruning",

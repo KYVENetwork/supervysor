@@ -88,11 +88,12 @@ To use the supervysor, you first need to initialize it:
 
 ```bash
 supervysor init
---address-book-path string   'path to address book (e.g. /root/.osmosisd/config/addrbook.json)'
---binary-path       string   'path to chain binaries (e.g. /root/go/bin/osmosisd)'
---chain-id          string   'KYVE chain-id'
---pool-id           int      'KYVE pool-id'
---seeds             string   'seeds for the node to connect'
+--address-book-path   string   'path to address book (e.g. /root/.osmosisd/config/addrbook.json)'
+--binary-path         string   'path to chain binaries (e.g. /root/go/bin/osmosisd)'
+--chain-id            string   'KYVE chain-id'
+--pool-id             int      'KYVE pool-id'
+--seeds               string   'seeds for the node to connect'
+--fallback-endpoints  string   'additional endpoints to query KYVE pool height [optional]'
 ```
 
 This command creates a config file at ```~/.supervysor/config.toml``` which is editable and required to start the supervysor.
