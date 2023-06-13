@@ -26,8 +26,10 @@ func GetPoolHeight(chainId string, poolId int, fallbackEndpoints string) (*int, 
 	}
 
 	for _, endpoint := range append(endpoints, strings.Split(fallbackEndpoints, ",")...) {
-		if height, err := requestPoolHeight(poolId, endpoint); err != nil {
-			return height, err
+		if endpoint != "" {
+			if height, err := requestPoolHeight(poolId, endpoint); err == nil {
+				return height, err
+			}
 		}
 	}
 	return nil, err
