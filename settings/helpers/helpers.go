@@ -60,8 +60,10 @@ func GetPoolSettings(poolId int, chainId string, fallbackEndpoints string) ([2]i
 	}
 
 	for _, endpoint := range append(endpoints, strings.Split(fallbackEndpoints, ",")...) {
-		if height, err := requestPoolSettings(poolId, endpoint); err != nil {
-			return height, err
+		if endpoint != "" {
+			if height, err := requestPoolSettings(poolId, endpoint); err == nil {
+				return height, err
+			}
 		}
 	}
 
