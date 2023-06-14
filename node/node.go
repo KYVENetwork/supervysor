@@ -25,7 +25,7 @@ var logger = log.NewLogger(os.Stdout)
 
 var Process = types.ProcessType{
 	Id:        0,
-	GhostMode: nil,
+	GhostMode: false,
 }
 
 func GetNodeHeight(recursionDepth int) (int, error) {
@@ -79,7 +79,7 @@ func startNode(initial bool, binaryPath string, addrBookPath string, seeds strin
 	}
 
 	// To start the node normally when it's not initially, Process ID needs to be = 0 and GhostMode = true
-	if (Process.Id != 0 || !*Process.GhostMode) && !initial {
+	if (Process.Id != 0 || !Process.GhostMode) && !initial {
 		return nil, fmt.Errorf("process management failed")
 	} else {
 		cmdPath, err := exec.LookPath(binaryPath)
@@ -155,7 +155,7 @@ func startGhostNode(binaryPath string, addrBookPath string) (*os.Process, error)
 	logger.Info("address book successfully moved")
 
 	// To start the node in GhostMode, Process ID needs to be = 0 and GhostMode = false
-	if Process.Id != 0 || *Process.GhostMode {
+	if Process.Id != 0 || Process.GhostMode {
 		return nil, fmt.Errorf("process management failed")
 	} else {
 

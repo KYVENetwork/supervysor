@@ -14,13 +14,13 @@ func InitialStart(binaryPath string, addrBookPath string, seeds string) error {
 	logger.Info("initial process started", "pId", process.Pid)
 
 	Process.Id = process.Pid
-	*Process.GhostMode = false
+	Process.GhostMode = false
 
 	return nil
 }
 
 func EnableGhostMode(binaryPath string, addrBookPath string) error {
-	if !*Process.GhostMode {
+	if !Process.GhostMode {
 		logger.Info("enabling Ghost Mode")
 
 		if err := ShutdownNode(); err != nil {
@@ -33,7 +33,7 @@ func EnableGhostMode(binaryPath string, addrBookPath string) error {
 		} else {
 			if process != nil && process.Pid > 0 {
 				Process.Id = process.Pid
-				*Process.GhostMode = true
+				Process.GhostMode = true
 				logger.Info("node started in Ghost Mode")
 			} else {
 				return fmt.Errorf("Ghost Mode enabling failed: process is not defined")
@@ -46,7 +46,7 @@ func EnableGhostMode(binaryPath string, addrBookPath string) error {
 }
 
 func EnableNormalMode(binaryPath string, addrBookPath string, seeds string) error {
-	if *Process.GhostMode {
+	if Process.GhostMode {
 		logger.Info("enable Normal Mode")
 
 		if err := ShutdownNode(); err != nil {
@@ -59,7 +59,7 @@ func EnableNormalMode(binaryPath string, addrBookPath string, seeds string) erro
 		} else {
 			if process != nil && process.Pid > 0 {
 				Process.Id = process.Pid
-				*Process.GhostMode = false
+				Process.GhostMode = false
 				logger.Info("Node started in Normal Mode", "pId", process.Pid)
 			} else {
 				return fmt.Errorf("Ghost Mode disabling failed: process is not defined")
