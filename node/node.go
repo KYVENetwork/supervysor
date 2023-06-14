@@ -25,10 +25,11 @@ var logger = log.NewLogger(os.Stdout)
 
 var Process = types.ProcessType{
 	Id:        0,
-	GhostMode: true,
+	GhostMode: nil,
 }
 
 func GetNodeHeight(recursionDepth int) (int, error) {
+	logger.Impl()
 	if recursionDepth < 5 {
 		if Process.Id == 0 {
 			logger.Info(fmt.Sprintf("node hasn't started yet. Try again in 5s ... (%d/5)", recursionDepth+1))
@@ -77,9 +78,9 @@ func startNode(initial bool, binaryPath string, addrBookPath string, seeds strin
 		}
 	}
 
-	if !(Process.Id == 0 && Process.GhostMode) && !initial {
-		// TODO(@christopher): Panic and stop all processes
-		return nil, nil
+	// To start the node normally when it's not initially, Process ID needs to be = 0 and GhostMode = true
+	if (Process.Id != 0 || !*Process.GhostMode) && !initial {
+		return nil, fmt.Errorf("process management failed")
 	} else {
 		cmdPath, err := exec.LookPath(binaryPath)
 		if err != nil {
@@ -153,9 +154,9 @@ func startGhostNode(binaryPath string, addrBookPath string) (*os.Process, error)
 
 	logger.Info("address book successfully moved")
 
-	if !(Process.Id == 0 && !Process.GhostMode) {
-		// TODO(@christopher): Panic and stop all processes
-		return nil, nil
+	// To start the node in GhostMode, Process ID needs to be = 0 and GhostMode = false
+	if Process.Id != 0 || *Process.GhostMode {
+		return nil, fmt.Errorf("process management failed")
 	} else {
 
 		cmdPath, err := exec.LookPath(binaryPath)
@@ -163,27 +164,23 @@ func startGhostNode(binaryPath string, addrBookPath string) (*os.Process, error)
 			return nil, fmt.Errorf("could not resolve binary path: %s", err)
 		}
 
-		var args []string
+		port, err := helpers.GetPort()
+		if err != nil {
+			return nil, fmt.Errorf("could not find unused port: %s", err)
+		}
+
+		laddr := "tcp://0.0.0.0:" + strconv.Itoa(port)
+
+		args := []string{
+			"start",
+			"--p2p.seeds",
+			" ",
+			"--p2p.laddr",
+			laddr,
+		}
 
 		if strings.HasSuffix(binaryPath, "/cosmovisor") {
-			args = []string{
-				"run",
-				"start",
-				"--p2p.seeds",
-				" ",
-				"--p2p.laddr",
-				// TODO(@christopher): Find unused port
-				"tcp://0.0.0.0:26658",
-			}
-		} else {
-			args = []string{
-				"start",
-				"--p2p.seeds",
-				" ",
-				"--p2p.laddr",
-				// TODO(@christopher): Find unused port
-				"tcp://0.0.0.0:26658",
-			}
+			args = append([]string{"run"}, args...)
 		}
 
 		cmd := exec.Command(cmdPath, args...)

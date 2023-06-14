@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 
+	"github.com/KYVENetwork/supervysor/cmd/supervysor/helpers"
 	"github.com/KYVENetwork/supervysor/types"
 
 	"github.com/KYVENetwork/supervysor/settings"
@@ -83,7 +83,7 @@ func InitializeSupervysor() error {
 		logger.Error("could not initialize settings", "err", err)
 		return err
 	}
-	configPath, err := getSupervysorDir()
+	configPath, err := helpers.GetSupervysorDir()
 	if err != nil {
 		logger.Error("could not get supervysor directory path", "err", err)
 		return err
@@ -141,7 +141,7 @@ func InitializeSupervysor() error {
 }
 
 func getConfig() (*types.Config, error) {
-	configPath, err := getSupervysorDir()
+	configPath, err := helpers.GetSupervysorDir()
 	if err != nil {
 		return nil, fmt.Errorf("could not get supervysor directory path: %s", err)
 	}
@@ -157,13 +157,4 @@ func getConfig() (*types.Config, error) {
 	}
 
 	return &cfg, nil
-}
-
-func getSupervysorDir() (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", fmt.Errorf("could not find home directory: %s", err)
-	}
-
-	return filepath.Join(home, ".supervysor"), nil
 }

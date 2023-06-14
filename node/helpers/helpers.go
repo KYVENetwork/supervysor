@@ -3,16 +3,40 @@ package helpers
 import (
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"path/filepath"
 )
 
+func GetPort() (int, error) {
+	addr, err := net.ResolveTCPAddr("tcp", "0.0.0.0:0")
+	if err != nil {
+		return 0, err
+	}
+
+	l, err := net.ListenTCP("tcp", addr)
+	if err != nil {
+		return 0, err
+	}
+	defer l.Close()
+	return l.Addr().(*net.TCPAddr).Port, nil
+}
+
 func MoveAddressBook(activateGhostMode bool, addrBookPath string) error {
 	if activateGhostMode {
-		// TODO(@christopher): Check if addrbook needs to be moved
 		parentDir := filepath.Dir(filepath.Dir(addrBookPath))
 		filename := filepath.Base(addrBookPath)
 		destPath := filepath.Join(parentDir, filename)
+
+		if _, err := os.Stat(destPath); err == nil {
+			if _, err = os.Stat(addrBookPath); err == nil {
+				err = os.Remove(addrBookPath)
+				if err != nil {
+					return fmt.Errorf("could not remove address book file: %s", err)
+				}
+			}
+			return nil
+		}
 
 		srcFile, err := os.Open(addrBookPath)
 		if err != nil {
@@ -43,13 +67,22 @@ func MoveAddressBook(activateGhostMode bool, addrBookPath string) error {
 
 		err = os.Remove(addrBookPath)
 		if err != nil {
-			return fmt.Errorf("could not delete source address book file: %s", err)
+			return fmt.Errorf("could not remove source address book file: %s", err)
 		}
 	} else {
-		// TODO(@christopher): Check if addrbook needs to be moved
 		parentDir := filepath.Dir(filepath.Dir(addrBookPath))
 		filename := filepath.Base(addrBookPath)
 		sourcePath := filepath.Join(parentDir, filename)
+
+		if _, err := os.Stat(addrBookPath); err == nil {
+			if _, err = os.Stat(sourcePath); err == nil {
+				err = os.Remove(sourcePath)
+				if err != nil {
+					return fmt.Errorf("could not remove address book file: %s", err)
+				}
+			}
+			return nil
+		}
 
 		srcFile, err := os.Open(sourcePath)
 		if err != nil {
@@ -80,7 +113,7 @@ func MoveAddressBook(activateGhostMode bool, addrBookPath string) error {
 
 		err = os.Remove(sourcePath)
 		if err != nil {
-			return fmt.Errorf("could not delete source address book file: %s", err)
+			return fmt.Errorf("could not remove source address book file: %s", err)
 		}
 	}
 

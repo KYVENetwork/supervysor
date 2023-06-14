@@ -28,7 +28,7 @@ type PoolSettingsType struct {
 
 type ProcessType struct {
 	Id        int
-	GhostMode bool
+	GhostMode *bool
 }
 
 type SettingsResponse struct {
