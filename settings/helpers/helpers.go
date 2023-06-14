@@ -60,6 +60,7 @@ func GetPoolSettings(poolId int, chainId string, fallbackEndpoints string) ([2]i
 	}
 
 	for _, endpoint := range append(endpoints, strings.Split(fallbackEndpoints, ",")...) {
+		fmt.Printf("endpoint: %s", endpoint)
 		if height, err := requestPoolSettings(poolId, endpoint); err != nil {
 			return height, err
 		}
@@ -73,7 +74,7 @@ func requestPoolSettings(poolId int, endpoint string) ([2]int, error) {
 
 	response, err := http.Get(poolEndpoint)
 	if err != nil {
-		logger.Error("API isn't available", err.Error())
+		logger.Error("API is not available", err.Error())
 		return [2]int{}, err
 	}
 
