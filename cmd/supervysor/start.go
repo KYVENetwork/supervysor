@@ -32,7 +32,7 @@ var startCmd = &cobra.Command{
 			return err
 		}
 
-		logFile, err := os.OpenFile(supervysorDir+"/logs/"+time.Now().Format("20060102_150405")+".log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o666)
+		logFile, err := os.OpenFile(supervysorDir+"/logs/"+time.Now().Format("20060102_150405")+".log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0777)
 		if err != nil {
 			logger.Error(fmt.Sprintf("could not open log file: %v", err))
 			return err
