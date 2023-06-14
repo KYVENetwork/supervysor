@@ -60,7 +60,6 @@ func GetPoolSettings(poolId int, chainId string, fallbackEndpoints string) ([2]i
 	}
 
 	for _, endpoint := range append(endpoints, strings.Split(fallbackEndpoints, ",")...) {
-		fmt.Printf("endpoint: %s", endpoint)
 		if height, err := requestPoolSettings(poolId, endpoint); err != nil {
 			return height, err
 		}
@@ -71,6 +70,8 @@ func GetPoolSettings(poolId int, chainId string, fallbackEndpoints string) ([2]i
 
 func requestPoolSettings(poolId int, endpoint string) ([2]int, error) {
 	poolEndpoint := endpoint + "/kyve/query/v1beta1/pool/" + strconv.FormatInt(int64(poolId), 10)
+
+	fmt.Println(poolEndpoint)
 
 	response, err := http.Get(poolEndpoint)
 	if err != nil {
