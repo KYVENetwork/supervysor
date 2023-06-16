@@ -21,8 +21,6 @@ func InitialStart(binaryPath string, addrBookPath string, seeds string) error {
 
 func EnableGhostMode(binaryPath string, addrBookPath string) error {
 	if !Process.GhostMode {
-		logger.Info("enabling Ghost Mode")
-
 		if err := ShutdownNode(); err != nil {
 			logger.Error("could not shutdown node", "err", err)
 		}
@@ -39,16 +37,12 @@ func EnableGhostMode(binaryPath string, addrBookPath string) error {
 				return fmt.Errorf("Ghost Mode enabling failed: process is not defined")
 			}
 		}
-	} else {
-		logger.Info("keeping Ghost Mode enabled")
 	}
 	return nil
 }
 
 func EnableNormalMode(binaryPath string, addrBookPath string, seeds string) error {
 	if Process.GhostMode {
-		logger.Info("enable Normal Mode")
-
 		if err := ShutdownNode(); err != nil {
 			logger.Error("could not shutdown node", "err", err)
 		}
@@ -65,8 +59,6 @@ func EnableNormalMode(binaryPath string, addrBookPath string, seeds string) erro
 				return fmt.Errorf("Ghost Mode disabling failed: process is not defined")
 			}
 		}
-	} else {
-		logger.Info("keeping Normal Mode enabled")
 	}
 	return nil
 }

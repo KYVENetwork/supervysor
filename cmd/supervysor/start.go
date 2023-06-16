@@ -27,6 +27,8 @@ var startCmd = &cobra.Command{
 			return err
 		}
 
+		var currentMode = ""
+
 		for {
 			// Request data source node height and KYVE pool height to calculate difference.
 			nodeHeight, err := node.GetNodeHeight(0)
@@ -47,12 +49,16 @@ var startCmd = &cobra.Command{
 				return err
 			}
 
-			logger.Info("fetched heights successfully", "node", nodeHeight, "pool", poolHeight, "current-target-height", *poolHeight+config.HeightDifferenceMax)
+			logger.Info("fetched heights successfully", "node", nodeHeight, "pool", poolHeight, "max-height", *poolHeight+config.HeightDifferenceMax, "min-height", *poolHeight+config.HeightDifferenceMin)
 
 			// Calculate height difference to enable the correct mode.
 			heightDiff := nodeHeight - *poolHeight
 
 			if heightDiff >= config.HeightDifferenceMax {
+				if currentMode != "ghost" {
+					logger.Info("enabling GhostMode")
+					currentMode = "ghost"
+				}
 				// Data source node has synced far enough, enable or keep Ghost Mode
 				if err = node.EnableGhostMode(config.BinaryPath, config.AddrBookPath); err != nil {
 					logger.Error("could not enable Ghost Mode", "err", err)
@@ -64,8 +70,12 @@ var startCmd = &cobra.Command{
 				}
 			} else if heightDiff < config.HeightDifferenceMax && heightDiff > config.HeightDifferenceMin {
 				// No threshold reached, keep current mode
-				logger.Info("keeping current Mode", "height-difference", heightDiff)
+				logger.Info("keeping current Mode", "mode", currentMode, "height-difference", heightDiff)
 			} else {
+				if currentMode != "normal" {
+					logger.Info("enabling NormalMode")
+					currentMode = "normal"
+				}
 				// Difference is < HeightDifferenceMin, Data source needs to catch up, enable or keep Normal Mode
 				if err = node.EnableNormalMode(config.BinaryPath, config.AddrBookPath, config.Seeds); err != nil {
 					logger.Error("could not enable Normal Mode", "err", err)
