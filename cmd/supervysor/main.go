@@ -2,6 +2,12 @@ package main
 
 import (
 	"os"
+	"path/filepath"
+	"time"
+
+	"github.com/rs/zerolog"
+
+	"github.com/KYVENetwork/supervysor/cmd/supervysor/helpers"
 
 	"cosmossdk.io/log"
 
@@ -19,6 +25,19 @@ var supervysor = &cobra.Command{
 }
 
 func main() {
+	logsDir, err := helpers.GetLogsDir()
+	if err != nil {
+		panic(err)
+	}
+	file, err := os.OpenFile(filepath.Join(logsDir, time.Now().Format("20060102_150405")+".log"), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o777)
+	if err != nil {
+		panic(err)
+	}
+
+	multiLogger := zerolog.MultiLevelWriter(file)
+
+	logger = log.NewCustomLogger(zerolog.New(multiLogger).With().Timestamp().Logger())
+
 	supervysor.AddCommand(initCmd)
 	supervysor.AddCommand(startCmd)
 	supervysor.AddCommand(versionCmd)
