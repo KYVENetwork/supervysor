@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"time"
@@ -34,7 +35,7 @@ func main() {
 		panic(err)
 	}
 
-	multiLogger := zerolog.MultiLevelWriter(file)
+	multiLogger := io.MultiWriter(zerolog.ConsoleWriter{Out: os.Stdout}, file)
 
 	logger = log.NewCustomLogger(zerolog.New(multiLogger).With().Timestamp().Logger())
 
