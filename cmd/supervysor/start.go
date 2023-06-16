@@ -27,7 +27,7 @@ var startCmd = &cobra.Command{
 			return err
 		}
 
-		var currentMode = ""
+		var currentMode = "normal"
 
 		for {
 			// Request data source node height and KYVE pool height to calculate difference.
