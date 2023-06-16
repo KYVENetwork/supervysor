@@ -58,6 +58,8 @@ var startCmd = &cobra.Command{
 				if currentMode != "ghost" {
 					logger.Info("enabling GhostMode")
 					currentMode = "ghost"
+				} else {
+					logger.Info("keeping GhostMode")
 				}
 				// Data source node has synced far enough, enable or keep Ghost Mode
 				if err = node.EnableGhostMode(config.BinaryPath, config.AddrBookPath); err != nil {
@@ -75,6 +77,8 @@ var startCmd = &cobra.Command{
 				if currentMode != "normal" {
 					logger.Info("enabling NormalMode")
 					currentMode = "normal"
+				} else {
+					logger.Info("keeping NormalMode")
 				}
 				// Difference is < HeightDifferenceMin, Data source needs to catch up, enable or keep Normal Mode
 				if err = node.EnableNormalMode(config.BinaryPath, config.AddrBookPath, config.Seeds); err != nil {
