@@ -30,7 +30,7 @@ var Process = types.ProcessType{
 
 func GetNodeHeight(recursionDepth int) (int, error) {
 	logger.Impl()
-	if recursionDepth < 5 {
+	if recursionDepth < 12 {
 		if Process.Id == 0 {
 			logger.Info(fmt.Sprintf("node hasn't started yet. Try again in 5s ... (%d/5)", recursionDepth+1))
 
