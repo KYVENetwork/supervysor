@@ -21,30 +21,31 @@ import (
 	"github.com/KYVENetwork/supervysor/node/helpers"
 )
 
-var logger = log.NewLogger(os.Stdout)
+var logger log.Logger
 
 var Process = types.ProcessType{
 	Id:        0,
 	GhostMode: false,
 }
 
-func GetNodeHeight(recursionDepth int) (int, error) {
-	logger.Impl()
-	if recursionDepth < 12 {
-		if Process.Id == 0 {
-			logger.Info(fmt.Sprintf("node hasn't started yet. Try again in 5s ... (%d/5)", recursionDepth+1))
+func GetNodeHeight(logFile string, recursionDepth int) (int, error) {
+	logger = helpers.InitLogger(logFile)
 
-			time.Sleep(time.Second * 5)
-			return GetNodeHeight(recursionDepth + 1)
+	if recursionDepth < 6 {
+		if Process.Id == 0 {
+			logger.Error(fmt.Sprintf("node hasn't started yet. Try again in 10s ... (%d/6)", recursionDepth+1))
+
+			time.Sleep(time.Second * 10)
+			return GetNodeHeight(logFile, recursionDepth+1)
 		}
 
 		response, err := http.Get(types.ABCIEndpoint)
 
 		if err != nil {
-			logger.Error("failed to query height. Try again in 5s ...")
+			logger.Error(fmt.Sprintf("failed to query height. Try again in 10s ... (%d/6)", recursionDepth+1))
 
-			time.Sleep(time.Second * 5)
-			return GetNodeHeight(recursionDepth + 1)
+			time.Sleep(time.Second * 10)
+			return GetNodeHeight(logFile, recursionDepth+1)
 		} else {
 			responseData, err := io.ReadAll(response.Body)
 			if err != nil {
@@ -70,7 +71,9 @@ func GetNodeHeight(recursionDepth int) (int, error) {
 	}
 }
 
-func startNode(initial bool, binaryPath string, addrBookPath string, seeds string) (*os.Process, error) {
+func startNode(logFile string, initial bool, binaryPath string, addrBookPath string, seeds string) (*os.Process, error) {
+	logger = helpers.InitLogger(logFile)
+
 	if !initial {
 		if err := helpers.MoveAddressBook(false, addrBookPath); err != nil {
 			logger.Error("could not move address book", "err", err)
@@ -146,7 +149,9 @@ func startNode(initial bool, binaryPath string, addrBookPath string, seeds strin
 	}
 }
 
-func startGhostNode(binaryPath string, addrBookPath string) (*os.Process, error) {
+func startGhostNode(logFile string, binaryPath string, addrBookPath string) (*os.Process, error) {
+	logger = helpers.InitLogger(logFile)
+
 	if err := helpers.MoveAddressBook(true, addrBookPath); err != nil {
 		logger.Error("could not move address book", "err", err)
 		return nil, err

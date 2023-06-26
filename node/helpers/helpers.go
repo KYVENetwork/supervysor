@@ -1,12 +1,16 @@
 package helpers
 
 import (
+	"cosmossdk.io/log"
 	"fmt"
+	"github.com/rs/zerolog"
 	"io"
 	"net"
 	"os"
 	"path/filepath"
 )
+
+var logger = log.NewLogger(os.Stdout)
 
 func GetPort() (int, error) {
 	addr, err := net.ResolveTCPAddr("tcp", "0.0.0.0:0")
@@ -20,6 +24,19 @@ func GetPort() (int, error) {
 	}
 	defer l.Close()
 	return l.Addr().(*net.TCPAddr).Port, nil
+}
+
+func InitLogger(logFile string) log.Logger {
+	openedFile, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o777)
+	if err != nil {
+		panic(err)
+	}
+
+	multiLogger := io.MultiWriter(zerolog.ConsoleWriter{Out: os.Stdout}, openedFile)
+
+	logger = log.NewCustomLogger(zerolog.New(multiLogger).With().Timestamp().Logger())
+
+	return logger
 }
 
 func MoveAddressBook(activateGhostMode bool, addrBookPath string) error {

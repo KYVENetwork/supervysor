@@ -4,9 +4,9 @@ import (
 	"fmt"
 )
 
-func InitialStart(binaryPath string, addrBookPath string, seeds string) error {
+func InitialStart(logFile string, binaryPath string, addrBookPath string, seeds string) error {
 	logger.Info("starting initially")
-	process, err := startNode(true, binaryPath, addrBookPath, seeds)
+	process, err := startNode(logFile, true, binaryPath, addrBookPath, seeds)
 	if err != nil {
 		return fmt.Errorf("could not start node initially: %s", err)
 	}
@@ -19,13 +19,13 @@ func InitialStart(binaryPath string, addrBookPath string, seeds string) error {
 	return nil
 }
 
-func EnableGhostMode(binaryPath string, addrBookPath string) error {
+func EnableGhostMode(logFile string, binaryPath string, addrBookPath string) error {
 	if !Process.GhostMode {
 		if err := ShutdownNode(); err != nil {
 			logger.Error("could not shutdown node", "err", err)
 		}
 
-		process, err := startGhostNode(binaryPath, addrBookPath)
+		process, err := startGhostNode(logFile, binaryPath, addrBookPath)
 		if err != nil {
 			return fmt.Errorf("Ghost Mode enabling failed: %s", err)
 		} else {
@@ -41,13 +41,13 @@ func EnableGhostMode(binaryPath string, addrBookPath string) error {
 	return nil
 }
 
-func EnableNormalMode(binaryPath string, addrBookPath string, seeds string) error {
+func EnableNormalMode(logFile string, binaryPath string, addrBookPath string, seeds string) error {
 	if Process.GhostMode {
 		if err := ShutdownNode(); err != nil {
 			logger.Error("could not shutdown node", "err", err)
 		}
 
-		process, err := startNode(false, binaryPath, addrBookPath, seeds)
+		process, err := startNode(logFile, false, binaryPath, addrBookPath, seeds)
 		if err != nil {
 			return fmt.Errorf("Ghost Mode disabling failed: %s", err)
 		} else {
