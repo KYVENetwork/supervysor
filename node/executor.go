@@ -2,9 +2,12 @@ package node
 
 import (
 	"fmt"
+	"github.com/KYVENetwork/supervysor/node/helpers"
 )
 
 func InitialStart(logFile string, binaryPath string, addrBookPath string, seeds string) error {
+	logger = helpers.InitLogger(logFile)
+
 	logger.Info("starting initially")
 	process, err := startNode(logFile, true, binaryPath, addrBookPath, seeds)
 	if err != nil {
@@ -20,6 +23,8 @@ func InitialStart(logFile string, binaryPath string, addrBookPath string, seeds 
 }
 
 func EnableGhostMode(logFile string, binaryPath string, addrBookPath string) error {
+	logger = helpers.InitLogger(logFile)
+
 	if !Process.GhostMode {
 		if err := ShutdownNode(); err != nil {
 			logger.Error("could not shutdown node", "err", err)
@@ -42,6 +47,8 @@ func EnableGhostMode(logFile string, binaryPath string, addrBookPath string) err
 }
 
 func EnableNormalMode(logFile string, binaryPath string, addrBookPath string, seeds string) error {
+	logger = helpers.InitLogger(logFile)
+
 	if Process.GhostMode {
 		if err := ShutdownNode(); err != nil {
 			logger.Error("could not shutdown node", "err", err)
