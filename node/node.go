@@ -71,7 +71,7 @@ func GetNodeHeight(logFile string, recursionDepth int) (int, error) {
 	}
 }
 
-func startNode(logFile string, initial bool, binaryPath string, addrBookPath string, seeds string) (*os.Process, error) {
+func startNode(logFile string, initial bool, binaryPath string, addrBookPath string, seeds string, homeDir string) (*os.Process, error) {
 	logger = helpers.InitLogger(logFile)
 
 	if !initial {
@@ -105,6 +105,10 @@ func startNode(logFile string, initial bool, binaryPath string, addrBookPath str
 
 		if initial {
 			args = append(args, "--p2p.seeds", seeds)
+		}
+
+		if homeDir != "" {
+			args = append(args, "--home", homeDir)
 		}
 
 		mergedArgs := append(args, settings.PruningCommands...)
@@ -149,7 +153,7 @@ func startNode(logFile string, initial bool, binaryPath string, addrBookPath str
 	}
 }
 
-func startGhostNode(logFile string, binaryPath string, addrBookPath string) (*os.Process, error) {
+func startGhostNode(logFile string, binaryPath string, addrBookPath string, homeDir string) (*os.Process, error) {
 	logger = helpers.InitLogger(logFile)
 
 	if err := helpers.MoveAddressBook(true, addrBookPath); err != nil {
@@ -186,6 +190,10 @@ func startGhostNode(logFile string, binaryPath string, addrBookPath string) (*os
 
 		if strings.HasSuffix(binaryPath, "/cosmovisor") {
 			args = append([]string{"run"}, args...)
+		}
+
+		if homeDir != "" {
+			args = append(args, "--home", homeDir)
 		}
 
 		cmd := exec.Command(cmdPath, args...)
