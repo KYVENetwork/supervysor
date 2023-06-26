@@ -25,19 +25,21 @@ var supervysor = &cobra.Command{
 	Version: Version,
 }
 
-var File string
+var LogFilePath string
 
 func main() {
 	logsDir, err := helpers.GetLogsDir()
 	if err != nil {
 		panic(err)
 	}
-	File, err := os.OpenFile(filepath.Join(logsDir, time.Now().Format("20060102_150405")+".log"), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o777)
+	LogFilePath = filepath.Join(logsDir, time.Now().Format("20060102_150405")+".log")
+
+	file, err := os.OpenFile(LogFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o777)
 	if err != nil {
 		panic(err)
 	}
 
-	multiLogger := io.MultiWriter(zerolog.ConsoleWriter{Out: os.Stdout}, File)
+	multiLogger := io.MultiWriter(zerolog.ConsoleWriter{Out: os.Stdout}, file)
 
 	logger = log.NewCustomLogger(zerolog.New(multiLogger).With().Timestamp().Logger())
 

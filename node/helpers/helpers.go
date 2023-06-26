@@ -1,13 +1,15 @@
 package helpers
 
 import (
-	"cosmossdk.io/log"
 	"fmt"
-	"github.com/rs/zerolog"
 	"io"
 	"net"
 	"os"
 	"path/filepath"
+
+	"cosmossdk.io/log"
+
+	"github.com/rs/zerolog"
 )
 
 var logger = log.NewLogger(os.Stdout)
@@ -27,12 +29,12 @@ func GetPort() (int, error) {
 }
 
 func InitLogger(logFile string) log.Logger {
-	openedFile, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o777)
+	File, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o777)
 	if err != nil {
 		panic(err)
 	}
 
-	multiLogger := io.MultiWriter(zerolog.ConsoleWriter{Out: os.Stdout}, openedFile)
+	multiLogger := io.MultiWriter(zerolog.ConsoleWriter{Out: os.Stdout}, File)
 
 	logger = log.NewCustomLogger(zerolog.New(multiLogger).With().Timestamp().Logger())
 
