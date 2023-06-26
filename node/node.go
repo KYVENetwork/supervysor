@@ -31,20 +31,20 @@ var Process = types.ProcessType{
 func GetNodeHeight(logFile string, recursionDepth int) (int, error) {
 	logger = helpers.InitLogger(logFile)
 
-	if recursionDepth < 6 {
+	if recursionDepth < 10 {
 		if Process.Id == 0 {
-			logger.Error(fmt.Sprintf("node hasn't started yet. Try again in 10s ... (%d/6)", recursionDepth+1))
+			logger.Error(fmt.Sprintf("node hasn't started yet. Try again in 20s ... (%d/10)", recursionDepth+1))
 
-			time.Sleep(time.Second * 10)
+			time.Sleep(time.Second * 20)
 			return GetNodeHeight(logFile, recursionDepth+1)
 		}
 
 		response, err := http.Get(types.ABCIEndpoint)
 
 		if err != nil {
-			logger.Error(fmt.Sprintf("failed to query height. Try again in 10s ... (%d/6)", recursionDepth+1))
+			logger.Error(fmt.Sprintf("failed to query height. Try again in 20s ... (%d/10)", recursionDepth+1))
 
-			time.Sleep(time.Second * 10)
+			time.Sleep(time.Second * 20)
 			return GetNodeHeight(logFile, recursionDepth+1)
 		} else {
 			responseData, err := io.ReadAll(response.Body)
