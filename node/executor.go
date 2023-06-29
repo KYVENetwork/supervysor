@@ -6,11 +6,11 @@ import (
 	"github.com/KYVENetwork/supervysor/node/helpers"
 )
 
-func InitialStart(logFile string, binaryPath string, addrBookPath string, seeds string, homeDir string) error {
+func InitialStart(logFile string, binaryPath string, homePath string, seeds string) error {
 	logger = helpers.InitLogger(logFile)
 
 	logger.Info("starting initially")
-	process, err := startNode(logFile, true, binaryPath, addrBookPath, seeds, homeDir)
+	process, err := startNode(logFile, true, binaryPath, homePath, seeds)
 	if err != nil {
 		return fmt.Errorf("could not start node initially: %s", err)
 	}
@@ -23,7 +23,7 @@ func InitialStart(logFile string, binaryPath string, addrBookPath string, seeds 
 	return nil
 }
 
-func EnableGhostMode(logFile string, binaryPath string, addrBookPath string, homeDir string) error {
+func EnableGhostMode(logFile string, binaryPath string, homePath string) error {
 	logger = helpers.InitLogger(logFile)
 
 	if !Process.GhostMode {
@@ -31,7 +31,7 @@ func EnableGhostMode(logFile string, binaryPath string, addrBookPath string, hom
 			logger.Error("could not shutdown node", "err", err)
 		}
 
-		process, err := startGhostNode(logFile, binaryPath, addrBookPath, homeDir)
+		process, err := startGhostNode(logFile, binaryPath, homePath)
 		if err != nil {
 			return fmt.Errorf("Ghost Mode enabling failed: %s", err)
 		} else {
@@ -47,7 +47,7 @@ func EnableGhostMode(logFile string, binaryPath string, addrBookPath string, hom
 	return nil
 }
 
-func EnableNormalMode(logFile string, binaryPath string, addrBookPath string, seeds string, homeDir string) error {
+func EnableNormalMode(logFile string, binaryPath string, homePath string, seeds string) error {
 	logger = helpers.InitLogger(logFile)
 
 	if Process.GhostMode {
@@ -55,7 +55,7 @@ func EnableNormalMode(logFile string, binaryPath string, addrBookPath string, se
 			logger.Error("could not shutdown node", "err", err)
 		}
 
-		process, err := startNode(logFile, false, binaryPath, addrBookPath, seeds, homeDir)
+		process, err := startNode(logFile, false, binaryPath, homePath, seeds)
 		if err != nil {
 			return fmt.Errorf("Ghost Mode disabling failed: %s", err)
 		} else {

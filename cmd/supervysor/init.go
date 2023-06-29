@@ -18,7 +18,7 @@ import (
 var (
 	chainId           string
 	binaryPath        string
-	addrBookPath      string
+	homePath          string
 	poolId            int
 	seeds             string
 	fallbackEndpoints string
@@ -43,9 +43,9 @@ func init() {
 		panic(fmt.Errorf("flag 'binary-path' should be required: %w", err))
 	}
 
-	initCmd.Flags().StringVar(&addrBookPath, "address-book-path", "", "path to address book (e.g. /root/.osmosisd/config/addrbook.json)")
-	if err := initCmd.MarkFlagRequired("address-book-path"); err != nil {
-		panic(fmt.Errorf("flag 'address-book-path' should be required: %w", err))
+	initCmd.Flags().StringVar(&homePath, "home-path", "", "path to home directory (e.g. /root/.osmosisd)")
+	if err := initCmd.MarkFlagRequired("home-path"); err != nil {
+		panic(fmt.Errorf("flag 'home-path' should be required: %w", err))
 	}
 
 	initCmd.Flags().IntVar(&poolId, "pool-id", 0, "KYVE pool-id")
@@ -79,17 +79,18 @@ var initCmd = &cobra.Command{
 }
 
 func InitializeSupervysor() error {
-	if err := settings.InitializeSettings(binaryPath, addrBookPath, poolId, false, seeds, chainId, fallbackEndpoints); err != nil {
+	if err := settings.InitializeSettings(binaryPath, homePath, poolId, false, seeds, chainId, fallbackEndpoints); err != nil {
 		logger.Error("could not initialize settings", "err", err)
 		return err
 	}
+
 	configPath, err := helpers.GetSupervysorDir()
 	if err != nil {
 		logger.Error("could not get supervysor directory path", "err", err)
 		return err
 	}
 
-	if _, err := os.Stat(configPath + "/config.toml"); err == nil {
+	if _, err = os.Stat(configPath + "/config.toml"); err == nil {
 		logger.Info(fmt.Sprintf("supervysor was already initialized and is editable under %s/config.toml", configPath))
 		return nil
 	} else if errors.Is(err, os.ErrNotExist) {
@@ -103,7 +104,7 @@ func InitializeSupervysor() error {
 		config := types.Config{
 			ChainId:           chainId,
 			BinaryPath:        binaryPath,
-			AddrBookPath:      addrBookPath,
+			HomePath:          homePath,
 			PoolId:            poolId,
 			Seeds:             seeds,
 			FallbackEndpoints: fallbackEndpoints,

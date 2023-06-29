@@ -2,7 +2,6 @@ package settings
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/KYVENetwork/supervysor/settings/helpers"
@@ -14,7 +13,6 @@ var poolSettings = types.PoolSettingsType{
 	UploadInterval: 0,
 }
 
-// TODO(@christopher): Integrate into config.toml
 var Settings = types.SettingsType{
 	MaxDifference: 0,
 	Seeds:         "",
@@ -23,15 +21,13 @@ var Settings = types.SettingsType{
 	KeepRecent:    0,
 }
 
-var PruningCommands []string
-
-func InitializeSettings(binaryPath string, addrBookPath string, poolId int, stateRequests bool, seeds string, chainId string, fallbackEndpoints string) error {
+func InitializeSettings(binaryPath string, homePath string, poolId int, stateRequests bool, seeds string, chainId string, fallbackEndpoints string) error {
 	if err := helpers.CheckBinaryPath(binaryPath); err != nil {
 		return fmt.Errorf("could not resolve binary path: %s", err)
 	}
 
-	if err := helpers.CheckFilePath(addrBookPath); err != nil {
-		return fmt.Errorf("could not resolve address book path: %s", err)
+	if err := helpers.CheckFilePath(homePath); err != nil {
+		return fmt.Errorf("could not resolve home-path: %s", err)
 	}
 
 	Settings.Seeds = seeds
@@ -43,6 +39,7 @@ func InitializeSettings(binaryPath string, addrBookPath string, poolId int, stat
 	if err != nil {
 		return fmt.Errorf("could not get pool settings: %s", err)
 	}
+
 	poolSettings.MaxBundleSize = settings[0]
 	poolSettings.UploadInterval = settings[1]
 
@@ -51,7 +48,6 @@ func InitializeSettings(binaryPath string, addrBookPath string, poolId int, stat
 	if keepRecent == 0 {
 		return fmt.Errorf("keep-recent calculation failed, poolSettings are probably not correctly set")
 	}
-	Settings.KeepRecent = keepRecent
 
 	maxDifference := helpers.CalculateMaxDifference(poolSettings.MaxBundleSize, poolSettings.UploadInterval)
 
@@ -64,24 +60,9 @@ func InitializeSettings(binaryPath string, addrBookPath string, poolId int, stat
 		return fmt.Errorf("max-difference can not be > keep-recent")
 	}
 
-	if stateRequests {
-		PruningCommands = []string{
-			"--pruning",
-			"custom",
-			"--pruning-keep-every",
-			strconv.Itoa(Settings.KeepEvery),
-			"--pruning-keep-recent",
-			strconv.Itoa(Settings.KeepRecent),
-			"--pruning-interval",
-			strconv.Itoa(Settings.Interval),
-		}
-	} else {
-		PruningCommands = []string{
-			"--pruning",
-			"everything",
-			"--min-retain-blocks",
-			strconv.Itoa(Settings.KeepRecent),
-		}
+	if err = helpers.SetPruningSettings(homePath, stateRequests, keepRecent, Settings.KeepEvery, Settings.Interval); err != nil {
+		return fmt.Errorf("could not set pruning settings: %s", err)
 	}
+
 	return nil
 }

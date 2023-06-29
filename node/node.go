@@ -8,14 +8,13 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
 	"time"
 
 	"github.com/KYVENetwork/supervysor/types"
-
-	"github.com/KYVENetwork/supervysor/settings"
 
 	"cosmossdk.io/log"
 	"github.com/KYVENetwork/supervysor/node/helpers"
@@ -71,8 +70,10 @@ func GetNodeHeight(logFile string, recursionDepth int) (int, error) {
 	}
 }
 
-func startNode(logFile string, initial bool, binaryPath string, addrBookPath string, seeds string, homeDir string) (*os.Process, error) {
+func startNode(logFile string, initial bool, binaryPath string, homePath string, seeds string) (*os.Process, error) {
 	logger = helpers.InitLogger(logFile)
+
+	addrBookPath := filepath.Join(homePath, "config", "addrbook.json")
 
 	if !initial {
 		if err := helpers.MoveAddressBook(false, addrBookPath); err != nil {
@@ -107,13 +108,11 @@ func startNode(logFile string, initial bool, binaryPath string, addrBookPath str
 			args = append(args, "--p2p.seeds", seeds)
 		}
 
-		if homeDir != "" {
-			args = append(args, "--home", homeDir)
+		if homePath != "" {
+			args = append(args, "--home", homePath)
 		}
 
-		mergedArgs := append(args, settings.PruningCommands...)
-
-		cmd := exec.Command(cmdPath, mergedArgs...)
+		cmd := exec.Command(cmdPath, args...)
 
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
@@ -153,8 +152,10 @@ func startNode(logFile string, initial bool, binaryPath string, addrBookPath str
 	}
 }
 
-func startGhostNode(logFile string, binaryPath string, addrBookPath string, homeDir string) (*os.Process, error) {
+func startGhostNode(logFile string, binaryPath string, homePath string) (*os.Process, error) {
 	logger = helpers.InitLogger(logFile)
+
+	addrBookPath := filepath.Join(homePath, "config", "addrbook.json")
 
 	if err := helpers.MoveAddressBook(true, addrBookPath); err != nil {
 		logger.Error("could not move address book", "err", err)
@@ -192,8 +193,8 @@ func startGhostNode(logFile string, binaryPath string, addrBookPath string, home
 			args = append([]string{"run"}, args...)
 		}
 
-		if homeDir != "" {
-			args = append(args, "--home", homeDir)
+		if homePath != "" {
+			args = append(args, "--home", homePath)
 		}
 
 		cmd := exec.Command(cmdPath, args...)

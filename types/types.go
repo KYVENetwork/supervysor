@@ -3,7 +3,7 @@ package types
 type Config struct {
 	ChainId             string
 	BinaryPath          string
-	AddrBookPath        string
+	HomePath            string
 	PoolId              int
 	Seeds               string
 	FallbackEndpoints   string

@@ -32,8 +32,11 @@ func GetSupervysorDir() (string, error) {
 
 	supervysorDir := filepath.Join(home, ".supervysor")
 
-	if _, err := os.Stat(supervysorDir); os.IsNotExist(err) {
-		return "", fmt.Errorf("could not find .supervysor directory: %s", err)
+	if _, err = os.Stat(supervysorDir); os.IsNotExist(err) {
+		err = os.Mkdir(supervysorDir, 0o755)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	return supervysorDir, nil

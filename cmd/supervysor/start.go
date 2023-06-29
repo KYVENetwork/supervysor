@@ -9,12 +9,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var homeDir string
-
-func init() {
-	startCmd.Flags().StringVar(&homeDir, "home", "directory for config and data (e.g. \"/root/.osmosisd\")", "additional endpoints to query KYVE pool height")
-}
-
 var startCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start a supervysed Tendermint node",
@@ -27,7 +21,7 @@ var startCmd = &cobra.Command{
 			return err
 		}
 		// Start data source node initially.
-		if err := node.InitialStart(LogFilePath, config.BinaryPath, config.AddrBookPath, config.Seeds, homeDir); err != nil {
+		if err := node.InitialStart(LogFilePath, config.BinaryPath, config.HomePath, config.Seeds); err != nil {
 			logger.Error("initial start failed", "err", err)
 			return err
 		}
@@ -67,7 +61,7 @@ var startCmd = &cobra.Command{
 					logger.Info("keeping GhostMode")
 				}
 				// Data source node has synced far enough, enable or keep Ghost Mode
-				if err = node.EnableGhostMode(LogFilePath, config.BinaryPath, config.AddrBookPath, homeDir); err != nil {
+				if err = node.EnableGhostMode(LogFilePath, config.BinaryPath, config.HomePath); err != nil {
 					logger.Error("could not enable Ghost Mode", "err", err)
 
 					if shutdownErr := node.ShutdownNode(); shutdownErr != nil {
@@ -86,7 +80,7 @@ var startCmd = &cobra.Command{
 					logger.Info("keeping NormalMode")
 				}
 				// Difference is < HeightDifferenceMin, Data source needs to catch up, enable or keep Normal Mode
-				if err = node.EnableNormalMode(LogFilePath, config.BinaryPath, config.AddrBookPath, config.Seeds, homeDir); err != nil {
+				if err = node.EnableNormalMode(LogFilePath, config.BinaryPath, config.HomePath, config.Seeds); err != nil {
 					logger.Error("could not enable Normal Mode", "err", err)
 
 					if shutdownErr := node.ShutdownNode(); shutdownErr != nil {

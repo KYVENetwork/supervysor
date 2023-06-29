@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -8,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -70,6 +72,59 @@ func GetPoolSettings(poolId int, chainId string, fallbackEndpoints string) ([2]i
 	return [2]int{}, err
 }
 
+func SetPruningSettings(homePath string, stateRequests bool, keepRecent int, keepEvery int, interval int) error {
+	configPath := filepath.Join(homePath, "config", "app.toml")
+
+	file, err := os.OpenFile(configPath, os.O_RDWR, 0o644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	var updatedLines []string
+
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		if stateRequests {
+			// Check if line contains pruning settings and set new pruning settings
+			if strings.Contains(line, "pruning =") {
+				line = "pruning = \"" + "custom" + "\""
+			} else if strings.Contains(line, "pruning-keep-recent =") {
+				line = "pruning-keep-recent = \"" + strconv.Itoa(keepRecent) + "\""
+			} else if strings.Contains(line, "pruning-interval =") {
+				line = "pruning-interval = \"" + strconv.Itoa(interval) + "\""
+			}
+		} else {
+			// Check if line contains pruning settings
+			if strings.Contains(line, "pruning =") {
+				line = "pruning = \"" + "everything" + "\""
+			} else if strings.Contains(line, "pruning-keep-recent =") {
+				line = "min-retain-blocks = \"" + strconv.Itoa(keepRecent) + "\""
+			}
+		}
+
+		updatedLines = append(updatedLines, line)
+	}
+
+	if err = scanner.Err(); err != nil {
+		return err
+	}
+
+	if err = writeUpdatedConfig(configPath, updatedLines); err != nil {
+		return err
+	}
+
+	if stateRequests {
+		logger.Info("successfully updated pruning settings", "pruning", "custom", "keep-recent", keepRecent, "interval", interval)
+	} else {
+		logger.Info("successfully updated pruning settings", "pruning", "everything", "min-retain-blocks", keepRecent)
+	}
+
+	return nil
+}
+
 func requestPoolSettings(poolId int, endpoint string) ([2]int, error) {
 	poolEndpoint := endpoint + "/kyve/query/v1beta1/pool/" + strconv.FormatInt(int64(poolId), 10)
 
@@ -109,4 +164,20 @@ func requestPoolSettings(poolId int, endpoint string) ([2]int, error) {
 	}
 
 	return [2]int{size, interval}, nil
+}
+
+func writeUpdatedConfig(configPath string, pruningSettings []string) error {
+	updatedFile, err := os.Create(configPath)
+	if err != nil {
+		return err
+	}
+	defer updatedFile.Close()
+
+	writer := bufio.NewWriter(updatedFile)
+	for _, line := range pruningSettings {
+		if _, err = fmt.Fprintln(writer, line); err != nil {
+			return err
+		}
+	}
+	return writer.Flush()
 }
