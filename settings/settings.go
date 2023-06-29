@@ -20,6 +20,10 @@ var Settings = types.SettingsType{
 	KeepRecent:    0,
 }
 
+// InitializeSettings initializes the required settings for the supervysor. It performs checks on the binaryPath
+// and homePath and sets the seeds value required for the node. It retrieves the pool settings, calculates the
+// keepRecent and maxDifference values, and sets the pruning settings based on these calculated values.
+// If any step encounters an error, it returns the corresponding error message.
 func InitializeSettings(binaryPath string, homePath string, poolId int, stateRequests bool, seeds string, chainId string, fallbackEndpoints string) error {
 	if err := helpers.CheckBinaryPath(binaryPath); err != nil {
 		return fmt.Errorf("could not resolve binary path: %s", err)

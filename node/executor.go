@@ -6,6 +6,7 @@ import (
 	"github.com/KYVENetwork/supervysor/node/helpers"
 )
 
+// InitialStart initiates the node by starting it in the initial mode.
 func InitialStart(logFile string, binaryPath string, homePath string, seeds string) error {
 	logger = helpers.InitLogger(logFile)
 
@@ -23,6 +24,9 @@ func InitialStart(logFile string, binaryPath string, homePath string, seeds stri
 	return nil
 }
 
+// EnableGhostMode activates the Ghost Mode by starting the node in GhostMode if it is not already enabled.
+// If not, it shuts down the node running in NormalMode, initiates the GhostMode and updates the process ID
+// and GhostMode upon success.
 func EnableGhostMode(logFile string, binaryPath string, homePath string) error {
 	logger = helpers.InitLogger(logFile)
 
@@ -47,6 +51,9 @@ func EnableGhostMode(logFile string, binaryPath string, homePath string) error {
 	return nil
 }
 
+// EnableNormalMode enables the Normal Mode by starting the node in NormalMode if it is not already enabled.
+// If the GhostMode is active, it shuts down the node, starts the NormalMode with the provided parameters
+// and updates the process ID and GhostMode upon success.
 func EnableNormalMode(logFile string, binaryPath string, homePath string, seeds string) error {
 	logger = helpers.InitLogger(logFile)
 

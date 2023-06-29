@@ -14,6 +14,7 @@ import (
 
 var logger = log.NewLogger(os.Stdout)
 
+// GetPort resolves an unused TCP address.
 func GetPort() (int, error) {
 	addr, err := net.ResolveTCPAddr("tcp", "0.0.0.0:0")
 	if err != nil {
@@ -28,6 +29,7 @@ func GetPort() (int, error) {
 	return l.Addr().(*net.TCPAddr).Port, nil
 }
 
+// InitLogger initializes the file logging for the current log file.
 func InitLogger(logFile string) log.Logger {
 	File, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o777)
 	if err != nil {
@@ -41,6 +43,8 @@ func InitLogger(logFile string) log.Logger {
 	return logger
 }
 
+// MoveAddressBook is responsible for moving an address book file from one location to another,
+// making it not visible in the GhostMode and visible in NormalMode.
 func MoveAddressBook(activateGhostMode bool, addrBookPath string) error {
 	if activateGhostMode {
 		parentDir := filepath.Dir(filepath.Dir(addrBookPath))

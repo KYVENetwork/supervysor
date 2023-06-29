@@ -27,6 +27,9 @@ var Process = types.ProcessType{
 	GhostMode: false,
 }
 
+// The GetNodeHeight function retrieves the height of the node by querying the ABCI endpoint.
+// It uses recursion with a maximum depth of 10 to handle delays or failures.
+// It returns the nodeHeight if successful or an error message if the recursion depth reaches the limit (200s).
 func GetNodeHeight(logFile string, recursionDepth int) (int, error) {
 	logger = helpers.InitLogger(logFile)
 
@@ -70,6 +73,9 @@ func GetNodeHeight(logFile string, recursionDepth int) (int, error) {
 	}
 }
 
+// startNode starts the node process in Normal Mode and returns the os.Process object representing
+// the running process. It checks if the node is being started initially or not, moves the
+// address book if necessary, and sets the appropriate command arguments based on the binaryPath.
 func startNode(logFile string, initial bool, binaryPath string, homePath string, seeds string) (*os.Process, error) {
 	logger = helpers.InitLogger(logFile)
 
@@ -152,6 +158,10 @@ func startNode(logFile string, initial bool, binaryPath string, homePath string,
 	}
 }
 
+// startGhostNode starts the node process in Ghost Mode and returns the os.Process object
+// representing the running process. It moves the address book, checks if the node is already running
+// or in Ghost Mode ands sets the appropriate command arguments based on the binaryPath.
+// It starts the node without seeds and with a changed laddr, so the node can't continue syncing.
 func startGhostNode(logFile string, binaryPath string, homePath string) (*os.Process, error) {
 	logger = helpers.InitLogger(logFile)
 

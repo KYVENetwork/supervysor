@@ -27,6 +27,7 @@ var supervysor = &cobra.Command{
 
 var LogFilePath string
 
+// main initializes logger including file logging and all supervysor commands.
 func main() {
 	logsDir, err := helpers.GetLogsDir()
 	if err != nil {

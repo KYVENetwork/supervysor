@@ -11,6 +11,8 @@ import (
 	"github.com/KYVENetwork/supervysor/types"
 )
 
+// GetPoolHeight retrieves the KYVE pool height by using a list of endpoints (& optionally fallback endpoints)
+// based on the provided chain and pool ID.
 func GetPoolHeight(chainId string, poolId int, fallbackEndpoints string) (*int, error) {
 	var endpoints []string
 	var err error
@@ -35,6 +37,7 @@ func GetPoolHeight(chainId string, poolId int, fallbackEndpoints string) (*int, 
 	return nil, err
 }
 
+// requestPoolHeight retrieves KYVE pool height by making an GET request to the given endpoint.
 func requestPoolHeight(poolId int, endpoint string) (*int, error) {
 	poolEndpoint := endpoint + "/kyve/query/v1beta1/pool/" + strconv.FormatInt(int64(poolId), 10)
 

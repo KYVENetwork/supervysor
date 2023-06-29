@@ -35,18 +35,29 @@ func CheckFilePath(path string) error {
 	return nil
 }
 
+// CalculateKeepRecent calculates the value for keepRecent, which is relevant for the pruning settings.
+// It ensures that data that doesn't need to be stored anymore is pruned only after it has been validated.
+// The calculation is based on the KYVE pool settings, and it ensures that blocks are stored for 2 days in advance.
 func CalculateKeepRecent(maxBundleSize int, uploadInterval int) int {
 	return int(
 		math.Round(
 			float64(maxBundleSize) / float64(uploadInterval) * 60 * 60 * 24 * 2))
 }
 
+// CalculateMaxDifference calculates a crucial threshold for the supervisor architecture.
+// When the node is ahead of the pool by this value, the syncing process will halt in Ghost Mode.
+// Once the node is again halfway within this value, the normal syncing process continues until
+// reaching the threshold again. It's essential for MaxDifference to be smaller than KeepRecent
+// to prevent pruning of unvalidated data. Additionally, this provides the node with a time window
+// of KeepRecent - MaxDifference blocks to discover peers and resume the normal syncing process.
 func CalculateMaxDifference(maxBundleSize int, uploadInterval int) int {
 	return int(
 		math.Round(
 			float64(maxBundleSize) / float64(uploadInterval) * 60 * 60 * 24 * 1))
 }
 
+// GetPoolSettings retrieves KYVE pool settings by using a list of endpoints (& optionally fallback endpoints)
+// based on the provided chain and pool ID.
 func GetPoolSettings(poolId int, chainId string, fallbackEndpoints string) ([2]int, error) {
 	var endpoints []string
 	var err error
@@ -72,6 +83,8 @@ func GetPoolSettings(poolId int, chainId string, fallbackEndpoints string) ([2]i
 	return [2]int{}, err
 }
 
+// SetPruningSettings updates the pruning settings in the app.toml file of the given home directory.
+// It reads the current file, modifies the relevant lines and writes the updated lines back to the file.
 func SetPruningSettings(homePath string, stateRequests bool, keepRecent int, interval int) error {
 	configPath := filepath.Join(homePath, "config", "app.toml")
 
@@ -128,6 +141,8 @@ func SetPruningSettings(homePath string, stateRequests bool, keepRecent int, int
 	return nil
 }
 
+// requestPoolSettings retrieves KYVE pool settings by making an GET request to the given endpoint.
+// It reads the response, extracts the relevant settings information and returns it.
 func requestPoolSettings(poolId int, endpoint string) ([2]int, error) {
 	poolEndpoint := endpoint + "/kyve/query/v1beta1/pool/" + strconv.FormatInt(int64(poolId), 10)
 
@@ -169,6 +184,7 @@ func requestPoolSettings(poolId int, endpoint string) ([2]int, error) {
 	return [2]int{size, interval}, nil
 }
 
+// writeUpdatedConfig is responsible for writing the updated pruning settings to a given config file.
 func writeUpdatedConfig(configPath string, pruningSettings []string) error {
 	updatedFile, err := os.Create(configPath)
 	if err != nil {

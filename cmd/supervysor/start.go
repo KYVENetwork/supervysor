@@ -9,6 +9,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// The startCmd of the supervysor launches and manages the node process using the specified binary.
+// It periodically retrieves the heights of the node and the associated KYVE pool, and dynamically adjusts
+// the sync mode of the node based on these heights.
 var startCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start a supervysed Tendermint node",

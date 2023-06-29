@@ -78,6 +78,7 @@ var initCmd = &cobra.Command{
 	},
 }
 
+// InitializeSupervysor initializes the required supervysor config and performs some basic checks.
 func InitializeSupervysor() error {
 	if err := settings.InitializeSettings(binaryPath, homePath, poolId, false, seeds, chainId, fallbackEndpoints); err != nil {
 		logger.Error("could not initialize settings", "err", err)
@@ -94,8 +95,8 @@ func InitializeSupervysor() error {
 		logger.Info(fmt.Sprintf("supervysor was already initialized and is editable under %s/config.toml", configPath))
 		return nil
 	} else if errors.Is(err, os.ErrNotExist) {
-		if _, err := os.Stat(configPath); errors.Is(err, os.ErrNotExist) {
-			err := os.Mkdir(configPath, 0o755)
+		if _, err = os.Stat(configPath); errors.Is(err, os.ErrNotExist) {
+			err = os.Mkdir(configPath, 0o755)
 			if err != nil {
 				return err
 			}
@@ -141,6 +142,7 @@ func InitializeSupervysor() error {
 	}
 }
 
+// getConfig returns the supervysor config.toml file.
 func getConfig() (*types.Config, error) {
 	configPath, err := helpers.GetSupervysorDir()
 	if err != nil {
