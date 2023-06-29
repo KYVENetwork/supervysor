@@ -100,7 +100,7 @@ func SetPruningSettings(homePath string, stateRequests bool, keepRecent int, kee
 			// Check if line contains pruning settings
 			if strings.Contains(line, "pruning =") {
 				line = "pruning = \"" + "everything" + "\""
-			} else if strings.Contains(line, "pruning-keep-recent =") {
+			} else if strings.Contains(line, "min-retain-blocks =") {
 				line = "min-retain-blocks = \"" + strconv.Itoa(keepRecent) + "\""
 			}
 		}
