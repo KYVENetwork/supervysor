@@ -87,8 +87,8 @@ func SetPruningSettings(homePath string, stateRequests bool, keepRecent int, int
 	for scanner.Scan() {
 		line := scanner.Text()
 
+		// Check if line contains pruning settings and set new pruning settings
 		if stateRequests {
-			// Check if line contains pruning settings and set new pruning settings
 			if strings.Contains(line, "pruning =") {
 				line = "pruning = \"" + "custom" + "\""
 			} else if strings.Contains(line, "pruning-keep-recent =") {
@@ -97,9 +97,12 @@ func SetPruningSettings(homePath string, stateRequests bool, keepRecent int, int
 				line = "pruning-interval = \"" + strconv.Itoa(interval) + "\""
 			}
 		} else {
-			// Check if line contains pruning settings
 			if strings.Contains(line, "pruning =") {
-				line = "pruning = \"" + "everything" + "\""
+				line = "pruning = \"" + "custom" + "\""
+			} else if strings.Contains(line, "pruning-keep-recent =") {
+				line = "pruning-keep-recent = \"" + strconv.Itoa(1000) + "\""
+			} else if strings.Contains(line, "pruning-interval =") {
+				line = "pruning-interval = \"" + strconv.Itoa(100) + "\""
 			} else if strings.Contains(line, "min-retain-blocks =") {
 				line = "min-retain-blocks = \"" + strconv.Itoa(keepRecent) + "\""
 			}
@@ -119,7 +122,7 @@ func SetPruningSettings(homePath string, stateRequests bool, keepRecent int, int
 	if stateRequests {
 		logger.Info("successfully updated pruning settings", "pruning", "custom", "keep-recent", keepRecent, "interval", interval)
 	} else {
-		logger.Info("successfully updated pruning settings", "pruning", "everything", "min-retain-blocks", keepRecent)
+		logger.Info("successfully updated pruning settings", "pruning", "everything", "min-retain-blocks", keepRecent, "keep-recent", 1000, "interval", 100)
 	}
 
 	return nil
