@@ -17,7 +17,6 @@ var Settings = types.SettingsType{
 	MaxDifference: 0,
 	Seeds:         "",
 	Interval:      10,
-	KeepEvery:     0,
 	KeepRecent:    0,
 }
 
@@ -60,7 +59,7 @@ func InitializeSettings(binaryPath string, homePath string, poolId int, stateReq
 		return fmt.Errorf("max-difference can not be > keep-recent")
 	}
 
-	if err = helpers.SetPruningSettings(homePath, stateRequests, keepRecent, Settings.KeepEvery, Settings.Interval); err != nil {
+	if err = helpers.SetPruningSettings(homePath, stateRequests, keepRecent, Settings.Interval); err != nil {
 		return fmt.Errorf("could not set pruning settings: %s", err)
 	}
 

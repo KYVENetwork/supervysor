@@ -72,7 +72,7 @@ func GetPoolSettings(poolId int, chainId string, fallbackEndpoints string) ([2]i
 	return [2]int{}, err
 }
 
-func SetPruningSettings(homePath string, stateRequests bool, keepRecent int, keepEvery int, interval int) error {
+func SetPruningSettings(homePath string, stateRequests bool, keepRecent int, interval int) error {
 	configPath := filepath.Join(homePath, "config", "app.toml")
 
 	file, err := os.OpenFile(configPath, os.O_RDWR, 0o644)
