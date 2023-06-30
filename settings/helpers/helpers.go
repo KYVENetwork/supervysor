@@ -105,19 +105,15 @@ func SetPruningSettings(homePath string, stateRequests bool, keepRecent int, int
 			if strings.Contains(line, "pruning =") {
 				line = "pruning = \"" + "custom" + "\""
 			} else if strings.Contains(line, "pruning-keep-recent =") {
-				line = "pruning-keep-recent = \"" + strconv.Itoa(keepRecent) + "\""
+				line = "pruning-keep-recent = " + strconv.Itoa(keepRecent)
 			} else if strings.Contains(line, "pruning-interval =") {
-				line = "pruning-interval = \"" + strconv.Itoa(interval) + "\""
+				line = "pruning-interval = " + strconv.Itoa(interval)
 			}
 		} else {
 			if strings.Contains(line, "pruning =") {
-				line = "pruning = \"" + "custom" + "\""
-			} else if strings.Contains(line, "pruning-keep-recent =") {
-				line = "pruning-keep-recent = \"" + strconv.Itoa(1000) + "\""
-			} else if strings.Contains(line, "pruning-interval =") {
-				line = "pruning-interval = \"" + strconv.Itoa(100) + "\""
+				line = "pruning = \"" + "everything" + "\""
 			} else if strings.Contains(line, "min-retain-blocks =") {
-				line = "min-retain-blocks = \"" + strconv.Itoa(keepRecent) + "\""
+				line = "min-retain-blocks = " + strconv.Itoa(keepRecent)
 			}
 		}
 
