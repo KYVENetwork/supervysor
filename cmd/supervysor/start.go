@@ -26,10 +26,7 @@ var startCmd = &cobra.Command{
 			return err
 		}
 
-		launcher, err := types.NewLauncher(&logger, config)
-		if err != nil {
-			logger.Error("could not create launcher", "err", err)
-		}
+		launcher := types.NewLauncher(&logger, config)
 
 		// Start data source node initially.
 		if err := node.InitialStart(launcher); err != nil {
@@ -44,7 +41,7 @@ var startCmd = &cobra.Command{
 			nodeHeight, err := node.GetNodeHeight(launcher, 0)
 			if err != nil {
 				logger.Error("could not get node height", "err", err)
-				if shutdownErr := node.ShutdownNode(); shutdownErr != nil {
+				if shutdownErr := node.ShutdownNode(launcher); shutdownErr != nil {
 					logger.Error("could not shutdown node process", "err", shutdownErr)
 				}
 				return err
@@ -53,7 +50,7 @@ var startCmd = &cobra.Command{
 			poolHeight, err := pool.GetPoolHeight(config.ChainId, config.PoolId, config.FallbackEndpoints)
 			if err != nil {
 				logger.Error("could not get pool height", "err", err)
-				if shutdownErr := node.ShutdownNode(); shutdownErr != nil {
+				if shutdownErr := node.ShutdownNode(launcher); shutdownErr != nil {
 					logger.Error("could not shutdown node process", "err", shutdownErr)
 				}
 				return err
@@ -75,7 +72,7 @@ var startCmd = &cobra.Command{
 				if err = node.EnableGhostMode(launcher); err != nil {
 					logger.Error("could not enable Ghost Mode", "err", err)
 
-					if shutdownErr := node.ShutdownNode(); shutdownErr != nil {
+					if shutdownErr := node.ShutdownNode(launcher); shutdownErr != nil {
 						logger.Error("could not shutdown node process", "err", shutdownErr)
 					}
 					return err
@@ -94,7 +91,7 @@ var startCmd = &cobra.Command{
 				if err = node.EnableNormalMode(launcher); err != nil {
 					logger.Error("could not enable Normal Mode", "err", err)
 
-					if shutdownErr := node.ShutdownNode(); shutdownErr != nil {
+					if shutdownErr := node.ShutdownNode(launcher); shutdownErr != nil {
 						logger.Error("could not shutdown node process", "err", shutdownErr)
 					}
 					return err

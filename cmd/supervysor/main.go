@@ -25,17 +25,15 @@ var supervysor = &cobra.Command{
 	Version: Version,
 }
 
-var LogFilePath string
-
 // main initializes logger including file logging and all supervysor commands.
 func main() {
 	logsDir, err := helpers.GetLogsDir()
 	if err != nil {
 		panic(err)
 	}
-	LogFilePath = filepath.Join(logsDir, time.Now().Format("20060102_150405")+".log")
+	logFilePath := filepath.Join(logsDir, time.Now().Format("20060102_150405")+".log")
 
-	file, err := os.OpenFile(LogFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o777)
+	file, err := os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o777)
 	if err != nil {
 		panic(err)
 	}
@@ -48,7 +46,7 @@ func main() {
 	supervysor.AddCommand(startCmd)
 	supervysor.AddCommand(versionCmd)
 
-	if err := supervysor.Execute(); err != nil {
+	if err = supervysor.Execute(); err != nil {
 		os.Exit(1)
 	}
 }

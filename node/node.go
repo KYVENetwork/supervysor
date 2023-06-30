@@ -18,17 +18,12 @@ import (
 	"github.com/KYVENetwork/supervysor/types"
 )
 
-var Process = types.ProcessType{
-	Id:        0,
-	GhostMode: false,
-}
-
 // The GetNodeHeight function retrieves the height of the node by querying the ABCI endpoint.
 // It uses recursion with a maximum depth of 10 to handle delays or failures.
 // It returns the nodeHeight if successful or an error message if the recursion depth reaches the limit (200s).
-func GetNodeHeight(launcher types.Launcher, recursionDepth int) (int, error) {
+func GetNodeHeight(launcher *types.Launcher, recursionDepth int) (int, error) {
 	if recursionDepth < 10 {
-		if Process.Id == 0 {
+		if launcher.Process.Id == 0 {
 			launcher.Logger.Error(fmt.Sprintf("node hasn't started yet. Try again in 20s ... (%d/10)", recursionDepth+1))
 
 			time.Sleep(time.Second * 20)
@@ -70,7 +65,7 @@ func GetNodeHeight(launcher types.Launcher, recursionDepth int) (int, error) {
 // startNode starts the node process in Normal Mode and returns the os.Process object representing
 // the running process. It checks if the node is being started initially or not, moves the
 // address book if necessary, and sets the appropriate command arguments based on the binaryPath.
-func startNode(launcher types.Launcher, initial bool) (*os.Process, error) {
+func startNode(launcher *types.Launcher, initial bool) (*os.Process, error) {
 	addrBookPath := filepath.Join(launcher.Cfg.HomePath, "config", "addrbook.json")
 
 	if !initial {
@@ -81,7 +76,7 @@ func startNode(launcher types.Launcher, initial bool) (*os.Process, error) {
 	}
 
 	// To start the node normally when it's not initially, Process ID needs to be = 0 and GhostMode = true
-	if (Process.Id != 0 || !Process.GhostMode) && !initial {
+	if (launcher.Process.Id != 0 || !launcher.Process.GhostMode) && !initial {
 		return nil, fmt.Errorf("process management failed")
 	} else {
 		cmdPath, err := exec.LookPath(launcher.Cfg.BinaryPath)
@@ -154,7 +149,7 @@ func startNode(launcher types.Launcher, initial bool) (*os.Process, error) {
 // representing the running process. It moves the address book, checks if the node is already running
 // or in Ghost Mode ands sets the appropriate command arguments based on the binaryPath.
 // It starts the node without seeds and with a changed laddr, so the node can't continue syncing.
-func startGhostNode(launcher types.Launcher) (*os.Process, error) {
+func startGhostNode(launcher *types.Launcher) (*os.Process, error) {
 	addrBookPath := filepath.Join(launcher.Cfg.HomePath, "config", "addrbook.json")
 
 	if err := helpers.MoveAddressBook(true, addrBookPath); err != nil {
@@ -165,7 +160,7 @@ func startGhostNode(launcher types.Launcher) (*os.Process, error) {
 	launcher.Logger.Info("address book successfully moved")
 
 	// To start the node in GhostMode, Process ID needs to be = 0 and GhostMode = false
-	if Process.Id != 0 || Process.GhostMode {
+	if launcher.Process.Id != 0 || launcher.Process.GhostMode {
 		return nil, fmt.Errorf("process management failed")
 	} else {
 
@@ -236,9 +231,9 @@ func startGhostNode(launcher types.Launcher) (*os.Process, error) {
 	}
 }
 
-func ShutdownNode() error {
-	if Process.Id != 0 {
-		process, err := os.FindProcess(Process.Id)
+func ShutdownNode(launcher *types.Launcher) error {
+	if launcher.Process.Id != 0 {
+		process, err := os.FindProcess(launcher.Process.Id)
 		if err != nil {
 			return fmt.Errorf("could not find process to shutdown: %s", err)
 		}
@@ -247,7 +242,7 @@ func ShutdownNode() error {
 			return fmt.Errorf("could not terminate process: %s", err)
 		}
 
-		Process.Id = 0
+		launcher.Process.Id = 0
 	}
 
 	return nil

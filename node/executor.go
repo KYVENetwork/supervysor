@@ -7,7 +7,7 @@ import (
 )
 
 // InitialStart initiates the node by starting it in the initial mode.
-func InitialStart(launcher types.Launcher) error {
+func InitialStart(launcher *types.Launcher) error {
 	launcher.Logger.Info("starting initially")
 	process, err := startNode(launcher, true)
 	if err != nil {
@@ -16,8 +16,8 @@ func InitialStart(launcher types.Launcher) error {
 
 	launcher.Logger.Info("initial process started", "pId", process.Pid)
 
-	Process.Id = process.Pid
-	Process.GhostMode = false
+	launcher.Process.Id = process.Pid
+	launcher.Process.GhostMode = false
 
 	return nil
 }
@@ -25,9 +25,9 @@ func InitialStart(launcher types.Launcher) error {
 // EnableGhostMode activates the Ghost Mode by starting the node in GhostMode if it is not already enabled.
 // If not, it shuts down the node running in NormalMode, initiates the GhostMode and updates the process ID
 // and GhostMode upon success.
-func EnableGhostMode(launcher types.Launcher) error {
-	if !Process.GhostMode {
-		if err := ShutdownNode(); err != nil {
+func EnableGhostMode(launcher *types.Launcher) error {
+	if !launcher.Process.GhostMode {
+		if err := ShutdownNode(launcher); err != nil {
 			launcher.Logger.Error("could not shutdown node", "err", err)
 		}
 
@@ -36,8 +36,8 @@ func EnableGhostMode(launcher types.Launcher) error {
 			return fmt.Errorf("Ghost Mode enabling failed: %s", err)
 		} else {
 			if process != nil && process.Pid > 0 {
-				Process.Id = process.Pid
-				Process.GhostMode = true
+				launcher.Process.Id = process.Pid
+				launcher.Process.GhostMode = true
 				launcher.Logger.Info("node started in Ghost Mode")
 			} else {
 				return fmt.Errorf("enabling Ghost Mode failed: process is not defined")
@@ -50,9 +50,9 @@ func EnableGhostMode(launcher types.Launcher) error {
 // EnableNormalMode enables the Normal Mode by starting the node in NormalMode if it is not already enabled.
 // If the GhostMode is active, it shuts down the node, starts the NormalMode with the provided parameters
 // and updates the process ID and GhostMode upon success.
-func EnableNormalMode(launcher types.Launcher) error {
-	if Process.GhostMode {
-		if err := ShutdownNode(); err != nil {
+func EnableNormalMode(launcher *types.Launcher) error {
+	if launcher.Process.GhostMode {
+		if err := ShutdownNode(launcher); err != nil {
 			launcher.Logger.Error("could not shutdown node", "err", err)
 		}
 
@@ -61,8 +61,8 @@ func EnableNormalMode(launcher types.Launcher) error {
 			return fmt.Errorf("Ghost Mode disabling failed: %s", err)
 		} else {
 			if process != nil && process.Pid > 0 {
-				Process.Id = process.Pid
-				Process.GhostMode = false
+				launcher.Process.Id = process.Pid
+				launcher.Process.GhostMode = false
 				launcher.Logger.Info("Node started in Normal Mode", "pId", process.Pid)
 			} else {
 				return fmt.Errorf("Ghost Mode disabling failed: process is not defined")
