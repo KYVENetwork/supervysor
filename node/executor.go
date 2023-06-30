@@ -3,20 +3,18 @@ package node
 import (
 	"fmt"
 
-	"github.com/KYVENetwork/supervysor/node/helpers"
+	"github.com/KYVENetwork/supervysor/types"
 )
 
 // InitialStart initiates the node by starting it in the initial mode.
-func InitialStart(logFile string, binaryPath string, homePath string, seeds string) error {
-	logger = helpers.InitLogger(logFile)
-
-	logger.Info("starting initially")
-	process, err := startNode(logFile, true, binaryPath, homePath, seeds)
+func InitialStart(launcher types.Launcher) error {
+	launcher.Logger.Info("starting initially")
+	process, err := startNode(launcher, true)
 	if err != nil {
 		return fmt.Errorf("could not start node initially: %s", err)
 	}
 
-	logger.Info("initial process started", "pId", process.Pid)
+	launcher.Logger.Info("initial process started", "pId", process.Pid)
 
 	Process.Id = process.Pid
 	Process.GhostMode = false
@@ -27,24 +25,22 @@ func InitialStart(logFile string, binaryPath string, homePath string, seeds stri
 // EnableGhostMode activates the Ghost Mode by starting the node in GhostMode if it is not already enabled.
 // If not, it shuts down the node running in NormalMode, initiates the GhostMode and updates the process ID
 // and GhostMode upon success.
-func EnableGhostMode(logFile string, binaryPath string, homePath string) error {
-	logger = helpers.InitLogger(logFile)
-
+func EnableGhostMode(launcher types.Launcher) error {
 	if !Process.GhostMode {
 		if err := ShutdownNode(); err != nil {
-			logger.Error("could not shutdown node", "err", err)
+			launcher.Logger.Error("could not shutdown node", "err", err)
 		}
 
-		process, err := startGhostNode(logFile, binaryPath, homePath)
+		process, err := startGhostNode(launcher)
 		if err != nil {
 			return fmt.Errorf("Ghost Mode enabling failed: %s", err)
 		} else {
 			if process != nil && process.Pid > 0 {
 				Process.Id = process.Pid
 				Process.GhostMode = true
-				logger.Info("node started in Ghost Mode")
+				launcher.Logger.Info("node started in Ghost Mode")
 			} else {
-				return fmt.Errorf("Ghost Mode enabling failed: process is not defined")
+				return fmt.Errorf("enabling Ghost Mode failed: process is not defined")
 			}
 		}
 	}
@@ -54,22 +50,20 @@ func EnableGhostMode(logFile string, binaryPath string, homePath string) error {
 // EnableNormalMode enables the Normal Mode by starting the node in NormalMode if it is not already enabled.
 // If the GhostMode is active, it shuts down the node, starts the NormalMode with the provided parameters
 // and updates the process ID and GhostMode upon success.
-func EnableNormalMode(logFile string, binaryPath string, homePath string, seeds string) error {
-	logger = helpers.InitLogger(logFile)
-
+func EnableNormalMode(launcher types.Launcher) error {
 	if Process.GhostMode {
 		if err := ShutdownNode(); err != nil {
-			logger.Error("could not shutdown node", "err", err)
+			launcher.Logger.Error("could not shutdown node", "err", err)
 		}
 
-		process, err := startNode(logFile, false, binaryPath, homePath, seeds)
+		process, err := startNode(launcher, false)
 		if err != nil {
 			return fmt.Errorf("Ghost Mode disabling failed: %s", err)
 		} else {
 			if process != nil && process.Pid > 0 {
 				Process.Id = process.Pid
 				Process.GhostMode = false
-				logger.Info("Node started in Normal Mode", "pId", process.Pid)
+				launcher.Logger.Info("Node started in Normal Mode", "pId", process.Pid)
 			} else {
 				return fmt.Errorf("Ghost Mode disabling failed: process is not defined")
 			}

@@ -14,13 +14,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/KYVENetwork/supervysor/types"
-
-	"cosmossdk.io/log"
 	"github.com/KYVENetwork/supervysor/node/helpers"
+	"github.com/KYVENetwork/supervysor/types"
 )
-
-var logger log.Logger
 
 var Process = types.ProcessType{
 	Id:        0,
@@ -30,40 +26,38 @@ var Process = types.ProcessType{
 // The GetNodeHeight function retrieves the height of the node by querying the ABCI endpoint.
 // It uses recursion with a maximum depth of 10 to handle delays or failures.
 // It returns the nodeHeight if successful or an error message if the recursion depth reaches the limit (200s).
-func GetNodeHeight(logFile string, recursionDepth int) (int, error) {
-	logger = helpers.InitLogger(logFile)
-
+func GetNodeHeight(launcher types.Launcher, recursionDepth int) (int, error) {
 	if recursionDepth < 10 {
 		if Process.Id == 0 {
-			logger.Error(fmt.Sprintf("node hasn't started yet. Try again in 20s ... (%d/10)", recursionDepth+1))
+			launcher.Logger.Error(fmt.Sprintf("node hasn't started yet. Try again in 20s ... (%d/10)", recursionDepth+1))
 
 			time.Sleep(time.Second * 20)
-			return GetNodeHeight(logFile, recursionDepth+1)
+			return GetNodeHeight(launcher, recursionDepth+1)
 		}
 
 		response, err := http.Get(types.ABCIEndpoint)
 
 		if err != nil {
-			logger.Error(fmt.Sprintf("failed to query height. Try again in 20s ... (%d/10)", recursionDepth+1))
+			launcher.Logger.Error(fmt.Sprintf("failed to query height. Try again in 20s ... (%d/10)", recursionDepth+1))
 
 			time.Sleep(time.Second * 20)
-			return GetNodeHeight(logFile, recursionDepth+1)
+			return GetNodeHeight(launcher, recursionDepth+1)
 		} else {
 			responseData, err := io.ReadAll(response.Body)
 			if err != nil {
-				logger.Error("could not read response data", "err", err.Error())
+				launcher.Logger.Error("could not read response data", "err", err.Error())
 			}
 
 			var resp types.HeightResponse
 			err = json.Unmarshal(responseData, &resp)
 			if err != nil {
-				logger.Error("could not unmarshal JSON", "err", err.Error())
+				launcher.Logger.Error("could not unmarshal JSON", "err", err.Error())
 			}
 
 			lastBlockHeight := resp.Result.Response.LastBlockHeight
 			nodeHeight, err := strconv.Atoi(lastBlockHeight)
 			if err != nil {
-				logger.Error("could not convert lastBlockHeight to str", "err", err.Error())
+				launcher.Logger.Error("could not convert lastBlockHeight to str", "err", err.Error())
 			}
 
 			return nodeHeight, nil
@@ -76,14 +70,12 @@ func GetNodeHeight(logFile string, recursionDepth int) (int, error) {
 // startNode starts the node process in Normal Mode and returns the os.Process object representing
 // the running process. It checks if the node is being started initially or not, moves the
 // address book if necessary, and sets the appropriate command arguments based on the binaryPath.
-func startNode(logFile string, initial bool, binaryPath string, homePath string, seeds string) (*os.Process, error) {
-	logger = helpers.InitLogger(logFile)
-
-	addrBookPath := filepath.Join(homePath, "config", "addrbook.json")
+func startNode(launcher types.Launcher, initial bool) (*os.Process, error) {
+	addrBookPath := filepath.Join(launcher.Cfg.HomePath, "config", "addrbook.json")
 
 	if !initial {
 		if err := helpers.MoveAddressBook(false, addrBookPath); err != nil {
-			logger.Error("could not move address book", "err", err)
+			launcher.Logger.Error("could not move address book", "err", err)
 			return nil, err
 		}
 	}
@@ -92,14 +84,14 @@ func startNode(logFile string, initial bool, binaryPath string, homePath string,
 	if (Process.Id != 0 || !Process.GhostMode) && !initial {
 		return nil, fmt.Errorf("process management failed")
 	} else {
-		cmdPath, err := exec.LookPath(binaryPath)
+		cmdPath, err := exec.LookPath(launcher.Cfg.BinaryPath)
 		if err != nil {
 			return nil, fmt.Errorf("could not resolve binary path: %s", err)
 		}
 
 		var args []string
 
-		if strings.HasSuffix(binaryPath, "/cosmovisor") {
+		if strings.HasSuffix(launcher.Cfg.BinaryPath, "/cosmovisor") {
 			args = []string{
 				"run",
 				"start",
@@ -111,11 +103,11 @@ func startNode(logFile string, initial bool, binaryPath string, homePath string,
 		}
 
 		if initial {
-			args = append(args, "--p2p.seeds", seeds)
+			args = append(args, "--p2p.seeds", launcher.Cfg.Seeds)
 		}
 
-		if homePath != "" {
-			args = append(args, "--home", homePath)
+		if launcher.Cfg.HomePath != "" {
+			args = append(args, "--home", launcher.Cfg.HomePath)
 		}
 
 		cmd := exec.Command(cmdPath, args...)
@@ -126,9 +118,9 @@ func startNode(logFile string, initial bool, binaryPath string, homePath string,
 		processIDChan := make(chan int)
 
 		go func() {
-			err := cmd.Start()
+			err = cmd.Start()
 			if err != nil {
-				logger.Error("could not start Normal Mode process", "err", err)
+				launcher.Logger.Error("could not start Normal Mode process", "err", err)
 				processIDChan <- -1
 				return
 			}
@@ -162,24 +154,22 @@ func startNode(logFile string, initial bool, binaryPath string, homePath string,
 // representing the running process. It moves the address book, checks if the node is already running
 // or in Ghost Mode ands sets the appropriate command arguments based on the binaryPath.
 // It starts the node without seeds and with a changed laddr, so the node can't continue syncing.
-func startGhostNode(logFile string, binaryPath string, homePath string) (*os.Process, error) {
-	logger = helpers.InitLogger(logFile)
-
-	addrBookPath := filepath.Join(homePath, "config", "addrbook.json")
+func startGhostNode(launcher types.Launcher) (*os.Process, error) {
+	addrBookPath := filepath.Join(launcher.Cfg.HomePath, "config", "addrbook.json")
 
 	if err := helpers.MoveAddressBook(true, addrBookPath); err != nil {
-		logger.Error("could not move address book", "err", err)
+		launcher.Logger.Error("could not move address book", "err", err)
 		return nil, err
 	}
 
-	logger.Info("address book successfully moved")
+	launcher.Logger.Info("address book successfully moved")
 
 	// To start the node in GhostMode, Process ID needs to be = 0 and GhostMode = false
 	if Process.Id != 0 || Process.GhostMode {
 		return nil, fmt.Errorf("process management failed")
 	} else {
 
-		cmdPath, err := exec.LookPath(binaryPath)
+		cmdPath, err := exec.LookPath(launcher.Cfg.BinaryPath)
 		if err != nil {
 			return nil, fmt.Errorf("could not resolve binary path: %s", err)
 		}
@@ -199,12 +189,12 @@ func startGhostNode(logFile string, binaryPath string, homePath string) (*os.Pro
 			laddr,
 		}
 
-		if strings.HasSuffix(binaryPath, "/cosmovisor") {
+		if strings.HasSuffix(launcher.Cfg.BinaryPath, "/cosmovisor") {
 			args = append([]string{"run"}, args...)
 		}
 
-		if homePath != "" {
-			args = append(args, "--home", homePath)
+		if launcher.Cfg.HomePath != "" {
+			args = append(args, "--home", launcher.Cfg.HomePath)
 		}
 
 		cmd := exec.Command(cmdPath, args...)
@@ -215,9 +205,9 @@ func startGhostNode(logFile string, binaryPath string, homePath string) (*os.Pro
 		processIDChan := make(chan int)
 
 		go func() {
-			err := cmd.Start()
+			err = cmd.Start()
 			if err != nil {
-				logger.Error("could not start Ghost Node process", "err", err)
+				launcher.Logger.Error("could not start Ghost Node process", "err", err)
 				processIDChan <- -1
 				return
 			}

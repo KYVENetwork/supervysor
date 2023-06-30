@@ -3,6 +3,8 @@ package main
 import (
 	"time"
 
+	"github.com/KYVENetwork/supervysor/types"
+
 	"github.com/KYVENetwork/supervysor/pool"
 
 	"github.com/KYVENetwork/supervysor/node"
@@ -23,8 +25,14 @@ var startCmd = &cobra.Command{
 			logger.Error("could not load config", "err", err)
 			return err
 		}
+
+		launcher, err := types.NewLauncher(&logger, config)
+		if err != nil {
+			logger.Error("could not create launcher", "err", err)
+		}
+
 		// Start data source node initially.
-		if err := node.InitialStart(LogFilePath, config.BinaryPath, config.HomePath, config.Seeds); err != nil {
+		if err := node.InitialStart(launcher); err != nil {
 			logger.Error("initial start failed", "err", err)
 			return err
 		}
@@ -33,7 +41,7 @@ var startCmd = &cobra.Command{
 
 		for {
 			// Request data source node height and KYVE pool height to calculate difference.
-			nodeHeight, err := node.GetNodeHeight(LogFilePath, 0)
+			nodeHeight, err := node.GetNodeHeight(launcher, 0)
 			if err != nil {
 				logger.Error("could not get node height", "err", err)
 				if shutdownErr := node.ShutdownNode(); shutdownErr != nil {
@@ -64,7 +72,7 @@ var startCmd = &cobra.Command{
 					logger.Info("keeping GhostMode")
 				}
 				// Data source node has synced far enough, enable or keep Ghost Mode
-				if err = node.EnableGhostMode(LogFilePath, config.BinaryPath, config.HomePath); err != nil {
+				if err = node.EnableGhostMode(launcher); err != nil {
 					logger.Error("could not enable Ghost Mode", "err", err)
 
 					if shutdownErr := node.ShutdownNode(); shutdownErr != nil {
@@ -83,7 +91,7 @@ var startCmd = &cobra.Command{
 					logger.Info("keeping NormalMode")
 				}
 				// Difference is < HeightDifferenceMin, Data source needs to catch up, enable or keep Normal Mode
-				if err = node.EnableNormalMode(LogFilePath, config.BinaryPath, config.HomePath, config.Seeds); err != nil {
+				if err = node.EnableNormalMode(launcher); err != nil {
 					logger.Error("could not enable Normal Mode", "err", err)
 
 					if shutdownErr := node.ShutdownNode(); shutdownErr != nil {
