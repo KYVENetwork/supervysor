@@ -3,22 +3,20 @@ package main
 import (
 	"time"
 
-	"github.com/KYVENetwork/supervysor/types"
-
-	"github.com/KYVENetwork/supervysor/pool"
-
-	"github.com/KYVENetwork/supervysor/node"
 	"github.com/spf13/cobra"
+
+	"github.com/KYVENetwork/supervysor/executor"
+	"github.com/KYVENetwork/supervysor/pool"
 )
 
 // The startCmd of the supervysor launches and manages the node process using the specified binary.
 // It periodically retrieves the heights of the node and the associated KYVE pool, and dynamically adjusts
 // the sync mode of the node based on these heights.
 var startCmd = &cobra.Command{
-	Use:   "start",
-	Short: "Start a supervysed Tendermint node",
-	Args:  cobra.ExactArgs(0),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Use:                "start",
+	Short:              "Start a supervysed Tendermint node",
+	DisableFlagParsing: true,
+	RunE: func(cmd *cobra.Command, flags []string) error {
 		// Load initialized config.
 		config, err := getConfig()
 		if err != nil {
@@ -26,10 +24,10 @@ var startCmd = &cobra.Command{
 			return err
 		}
 
-		launcher := types.NewLauncher(&logger, config)
+		e := executor.NewExecutor(&logger, config)
 
 		// Start data source node initially.
-		if err := node.InitialStart(launcher); err != nil {
+		if err := e.InitialStart(flags); err != nil {
 			logger.Error("initial start failed", "err", err)
 			return err
 		}
@@ -38,10 +36,10 @@ var startCmd = &cobra.Command{
 
 		for {
 			// Request data source node height and KYVE pool height to calculate difference.
-			nodeHeight, err := node.GetNodeHeight(launcher, 0)
+			nodeHeight, err := e.GetHeight()
 			if err != nil {
 				logger.Error("could not get node height", "err", err)
-				if shutdownErr := node.ShutdownNode(launcher); shutdownErr != nil {
+				if shutdownErr := e.Shutdown(); shutdownErr != nil {
 					logger.Error("could not shutdown node process", "err", shutdownErr)
 				}
 				return err
@@ -50,7 +48,7 @@ var startCmd = &cobra.Command{
 			poolHeight, err := pool.GetPoolHeight(config.ChainId, config.PoolId, config.FallbackEndpoints)
 			if err != nil {
 				logger.Error("could not get pool height", "err", err)
-				if shutdownErr := node.ShutdownNode(launcher); shutdownErr != nil {
+				if shutdownErr := e.Shutdown(); shutdownErr != nil {
 					logger.Error("could not shutdown node process", "err", shutdownErr)
 				}
 				return err
@@ -69,10 +67,10 @@ var startCmd = &cobra.Command{
 					logger.Info("keeping GhostMode")
 				}
 				// Data source node has synced far enough, enable or keep Ghost Mode
-				if err = node.EnableGhostMode(launcher); err != nil {
+				if err = e.EnableGhostMode(flags); err != nil {
 					logger.Error("could not enable Ghost Mode", "err", err)
 
-					if shutdownErr := node.ShutdownNode(launcher); shutdownErr != nil {
+					if shutdownErr := e.Shutdown(); shutdownErr != nil {
 						logger.Error("could not shutdown node process", "err", shutdownErr)
 					}
 					return err
@@ -88,10 +86,10 @@ var startCmd = &cobra.Command{
 					logger.Info("keeping NormalMode")
 				}
 				// Difference is < HeightDifferenceMin, Data source needs to catch up, enable or keep Normal Mode
-				if err = node.EnableNormalMode(launcher); err != nil {
+				if err = e.EnableNormalMode(flags); err != nil {
 					logger.Error("could not enable Normal Mode", "err", err)
 
-					if shutdownErr := node.ShutdownNode(launcher); shutdownErr != nil {
+					if shutdownErr := e.Shutdown(); shutdownErr != nil {
 						logger.Error("could not shutdown node process", "err", shutdownErr)
 					}
 					return err

@@ -6,13 +6,11 @@ import (
 	"path/filepath"
 	"time"
 
+	"cosmossdk.io/log"
 	"github.com/rs/zerolog"
+	"github.com/spf13/cobra"
 
 	"github.com/KYVENetwork/supervysor/cmd/supervysor/helpers"
-
-	"cosmossdk.io/log"
-
-	"github.com/spf13/cobra"
 )
 
 var logger = log.NewLogger(os.Stdout)
