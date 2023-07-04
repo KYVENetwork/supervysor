@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/KYVENetwork/supervysor/types"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
 	"time"
@@ -40,10 +41,14 @@ var startCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, flags []string) error {
 		// Create Prometheus registry
 		reg := prometheus.NewRegistry()
+		reg.MustRegister(collectors.NewGoCollector())
 		m := NewMetrics(reg)
 
+		m.NodeHeight.Set(float64(0))
+		m.PoolHeight.Set(float64(0))
+
 		// Create metrics endpoint
-		promHandler := promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
+		promHandler := promhttp.HandlerFor(reg, promhttp.HandlerOpts{Registry: reg})
 		http.Handle("/metrics", promHandler)
 		err := http.ListenAndServe(":26660", nil)
 		if err != nil {
