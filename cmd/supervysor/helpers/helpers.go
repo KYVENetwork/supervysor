@@ -2,12 +2,13 @@ package helpers
 
 import (
 	"fmt"
-	"github.com/KYVENetwork/supervysor/types"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/KYVENetwork/supervysor/types"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func GetDirectorySize(dirPath string) (float64, error) {
@@ -24,7 +25,6 @@ func GetDirectorySize(dirPath string) (float64, error) {
 
 		return nil
 	})
-
 	if err != nil {
 		return 0, err
 	}

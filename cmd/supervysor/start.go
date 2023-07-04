@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/KYVENetwork/supervysor/cmd/supervysor/helpers"
-	"github.com/prometheus/client_golang/prometheus"
 	"path/filepath"
 	"time"
+
+	"github.com/KYVENetwork/supervysor/cmd/supervysor/helpers"
+	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/spf13/cobra"
 
