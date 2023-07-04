@@ -87,8 +87,8 @@ var startCmd = &cobra.Command{
 			// Calculate height difference to enable the correct mode.
 			heightDiff := nodeHeight - *poolHeight
 
-			m.MaxHeight.Set(float64(nodeHeight + config.HeightDifferenceMax))
-			m.MinHeight.Set(float64(nodeHeight + config.HeightDifferenceMin))
+			m.MaxHeight.Set(float64(*poolHeight + config.HeightDifferenceMax))
+			m.MinHeight.Set(float64(*poolHeight + config.HeightDifferenceMin))
 
 			if heightDiff >= config.HeightDifferenceMax {
 				if currentMode != "ghost" {
