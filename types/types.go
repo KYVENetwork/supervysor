@@ -1,5 +1,7 @@
 package types
 
+import "github.com/prometheus/client_golang/prometheus"
+
 type Config struct {
 	ChainId             string
 	BinaryPath          string
@@ -19,6 +21,11 @@ type HeightResponse struct {
 			LastBlockHeight string `json:"last_block_height"`
 		} `json:"response"`
 	} `json:"result"`
+}
+
+type Metrics struct {
+	PoolHeight prometheus.Gauge
+	NodeHeight prometheus.Gauge
 }
 
 type PoolSettingsType struct {

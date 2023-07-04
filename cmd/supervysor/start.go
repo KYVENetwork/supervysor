@@ -1,6 +1,10 @@
 package main
 
 import (
+	"github.com/KYVENetwork/supervysor/types"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"net/http"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -8,6 +12,23 @@ import (
 	"github.com/KYVENetwork/supervysor/executor"
 	"github.com/KYVENetwork/supervysor/pool"
 )
+
+func NewMetrics(reg prometheus.Registerer) *types.Metrics {
+	m := &types.Metrics{
+		PoolHeight: prometheus.NewGauge(prometheus.GaugeOpts{
+			Namespace: "supervysor",
+			Name:      "pool_height",
+			Help:      "Height of the specified KYVE data pool.",
+		}),
+		NodeHeight: prometheus.NewGauge(prometheus.GaugeOpts{
+			Namespace: "supervysor",
+			Name:      "node_height",
+			Help:      "Height of the running data source node.",
+		}),
+	}
+	reg.MustRegister(m.PoolHeight, m.NodeHeight)
+	return m
+}
 
 // The startCmd of the supervysor launches and manages the node process using the specified binary.
 // It periodically retrieves the heights of the node and the associated KYVE pool, and dynamically adjusts
@@ -17,6 +38,19 @@ var startCmd = &cobra.Command{
 	Short:              "Start a supervysed Tendermint node",
 	DisableFlagParsing: true,
 	RunE: func(cmd *cobra.Command, flags []string) error {
+		// Create Prometheus registry
+		reg := prometheus.NewRegistry()
+		m := NewMetrics(reg)
+
+		// Create metrics endpoint
+		promHandler := promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
+		http.Handle("/metrics", promHandler)
+		err := http.ListenAndServe(":26660", nil)
+		if err != nil {
+			logger.Error("could not start metrics server", "err", err)
+			return err
+		}
+
 		// Load initialized config.
 		config, err := getConfig()
 		if err != nil {
@@ -44,6 +78,7 @@ var startCmd = &cobra.Command{
 				}
 				return err
 			}
+			m.NodeHeight.Set(float64(nodeHeight))
 
 			poolHeight, err := pool.GetPoolHeight(config.ChainId, config.PoolId, config.FallbackEndpoints)
 			if err != nil {
@@ -53,6 +88,7 @@ var startCmd = &cobra.Command{
 				}
 				return err
 			}
+			m.PoolHeight.Set(float64(*poolHeight))
 
 			logger.Info("fetched heights successfully", "node", nodeHeight, "pool", poolHeight, "max-height", *poolHeight+config.HeightDifferenceMax, "min-height", *poolHeight+config.HeightDifferenceMin)
 
