@@ -66,17 +66,6 @@ var startCmd = &cobra.Command{
 		}()
 
 		for {
-			dbSize, err := helpers.GetDirectorySize(filepath.Join(config.HomePath, "data"))
-			if err != nil {
-				logger.Error("could not get data directory size", "err", err)
-				if shutdownErr := e.Shutdown(); shutdownErr != nil {
-					logger.Error("could not shutdown node process", "err", shutdownErr)
-				}
-				return err
-			}
-
-			m.DataDirSize.Set(dbSize)
-
 			// Request data source node height and KYVE pool height to calculate difference.
 			nodeHeight, err := e.GetHeight()
 			if err != nil {
