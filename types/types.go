@@ -26,6 +26,8 @@ type HeightResponse struct {
 type Metrics struct {
 	PoolHeight prometheus.Gauge
 	NodeHeight prometheus.Gauge
+	MaxHeight  prometheus.Gauge
+	MinHeight  prometheus.Gauge
 }
 
 type PoolSettingsType struct {

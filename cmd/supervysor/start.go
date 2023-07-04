@@ -25,6 +25,16 @@ func NewMetrics(reg prometheus.Registerer) *types.Metrics {
 			Name:      "node_height",
 			Help:      "Height of the running data source node.",
 		}),
+		MaxHeight: prometheus.NewGauge(prometheus.GaugeOpts{
+			Namespace: "supervysor",
+			Name:      "max_height",
+			Help:      "Maximum height of node until Ghost Mode enabling.",
+		}),
+		MinHeight: prometheus.NewGauge(prometheus.GaugeOpts{
+			Namespace: "supervysor",
+			Name:      "min_height",
+			Help:      "Minimum height of node until Normal Mode enabling.",
+		}),
 	}
 	reg.MustRegister(m.PoolHeight, m.NodeHeight)
 	return m
@@ -104,6 +114,9 @@ var startCmd = &cobra.Command{
 
 			// Calculate height difference to enable the correct mode.
 			heightDiff := nodeHeight - *poolHeight
+
+			m.MaxHeight.Set(float64(nodeHeight + config.HeightDifferenceMax))
+			m.MinHeight.Set(float64(nodeHeight + config.HeightDifferenceMin))
 
 			if heightDiff >= config.HeightDifferenceMax {
 				if currentMode != "ghost" {
