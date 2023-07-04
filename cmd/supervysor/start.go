@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/KYVENetwork/supervysor/types"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
 	"time"
@@ -31,6 +30,18 @@ func NewMetrics(reg prometheus.Registerer) *types.Metrics {
 	return m
 }
 
+func startMetricsServer(reg *prometheus.Registry) error {
+	// Create metrics endpoint
+	promHandler := promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
+	http.Handle("/metrics", promHandler)
+	err := http.ListenAndServe(":26660", nil)
+	if err != nil {
+		logger.Error("could not start metrics server", "err", err)
+		return err
+	}
+	return nil
+}
+
 // The startCmd of the supervysor launches and manages the node process using the specified binary.
 // It periodically retrieves the heights of the node and the associated KYVE pool, and dynamically adjusts
 // the sync mode of the node based on these heights.
@@ -41,20 +52,14 @@ var startCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, flags []string) error {
 		// Create Prometheus registry
 		reg := prometheus.NewRegistry()
-		reg.MustRegister(collectors.NewGoCollector())
 		m := NewMetrics(reg)
 
-		m.NodeHeight.Set(float64(0))
-		m.PoolHeight.Set(float64(0))
-
-		// Create metrics endpoint
-		promHandler := promhttp.HandlerFor(reg, promhttp.HandlerOpts{Registry: reg})
-		http.Handle("/metrics", promHandler)
-		err := http.ListenAndServe(":26660", nil)
-		if err != nil {
-			logger.Error("could not start metrics server", "err", err)
-			return err
-		}
+		go func() {
+			err := startMetricsServer(reg)
+			if err != nil {
+				panic(err)
+			}
+		}()
 
 		// Load initialized config.
 		config, err := getConfig()
