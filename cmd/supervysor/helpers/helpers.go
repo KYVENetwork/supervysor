@@ -99,7 +99,7 @@ func NewMetrics(reg prometheus.Registerer) *types.Metrics {
 			Help:      "Size of data dir in --home dir.",
 		}),
 	}
-	reg.MustRegister(m.PoolHeight, m.NodeHeight)
+	reg.MustRegister(m.PoolHeight, m.NodeHeight, m.MaxHeight, m.MinHeight, m.DataDirSize)
 	return m
 }
 
