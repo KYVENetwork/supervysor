@@ -1,10 +1,9 @@
 package main
 
 import (
-	"github.com/KYVENetwork/supervysor/types"
+	"github.com/KYVENetwork/supervysor/cmd/supervysor/helpers"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"net/http"
+	"path/filepath"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -12,45 +11,6 @@ import (
 	"github.com/KYVENetwork/supervysor/executor"
 	"github.com/KYVENetwork/supervysor/pool"
 )
-
-func NewMetrics(reg prometheus.Registerer) *types.Metrics {
-	m := &types.Metrics{
-		PoolHeight: prometheus.NewGauge(prometheus.GaugeOpts{
-			Namespace: "supervysor",
-			Name:      "pool_height",
-			Help:      "Height of the specified KYVE data pool.",
-		}),
-		NodeHeight: prometheus.NewGauge(prometheus.GaugeOpts{
-			Namespace: "supervysor",
-			Name:      "node_height",
-			Help:      "Height of the running data source node.",
-		}),
-		MaxHeight: prometheus.NewGauge(prometheus.GaugeOpts{
-			Namespace: "supervysor",
-			Name:      "max_height",
-			Help:      "Maximum height of node until Ghost Mode enabling.",
-		}),
-		MinHeight: prometheus.NewGauge(prometheus.GaugeOpts{
-			Namespace: "supervysor",
-			Name:      "min_height",
-			Help:      "Minimum height of node until Normal Mode enabling.",
-		}),
-	}
-	reg.MustRegister(m.PoolHeight, m.NodeHeight)
-	return m
-}
-
-func startMetricsServer(reg *prometheus.Registry) error {
-	// Create metrics endpoint
-	promHandler := promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
-	http.Handle("/metrics", promHandler)
-	err := http.ListenAndServe(":26660", nil)
-	if err != nil {
-		logger.Error("could not start metrics server", "err", err)
-		return err
-	}
-	return nil
-}
 
 // The startCmd of the supervysor launches and manages the node process using the specified binary.
 // It periodically retrieves the heights of the node and the associated KYVE pool, and dynamically adjusts
@@ -62,10 +22,10 @@ var startCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, flags []string) error {
 		// Create Prometheus registry
 		reg := prometheus.NewRegistry()
-		m := NewMetrics(reg)
+		m := helpers.NewMetrics(reg)
 
 		go func() {
-			err := startMetricsServer(reg)
+			err := helpers.StartMetricsServer(reg)
 			if err != nil {
 				panic(err)
 			}
@@ -89,6 +49,17 @@ var startCmd = &cobra.Command{
 		currentMode := "normal"
 
 		for {
+			dbSize, err := helpers.GetDirectorySize(filepath.Join(config.HomePath, "data"))
+			if err != nil {
+				logger.Error("could not get data directory size", "err", err)
+				if shutdownErr := e.Shutdown(); shutdownErr != nil {
+					logger.Error("could not shutdown node process", "err", shutdownErr)
+				}
+				return err
+			}
+
+			m.DataDirSize.Set(dbSize)
+
 			// Request data source node height and KYVE pool height to calculate difference.
 			nodeHeight, err := e.GetHeight()
 			if err != nil {

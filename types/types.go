@@ -24,10 +24,11 @@ type HeightResponse struct {
 }
 
 type Metrics struct {
-	PoolHeight prometheus.Gauge
-	NodeHeight prometheus.Gauge
-	MaxHeight  prometheus.Gauge
-	MinHeight  prometheus.Gauge
+	PoolHeight  prometheus.Gauge
+	NodeHeight  prometheus.Gauge
+	MaxHeight   prometheus.Gauge
+	MinHeight   prometheus.Gauge
+	DataDirSize prometheus.Gauge
 }
 
 type PoolSettingsType struct {
