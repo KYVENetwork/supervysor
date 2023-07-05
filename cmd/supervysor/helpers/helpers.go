@@ -4,10 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"strconv"
-	"strings"
 
 	"github.com/KYVENetwork/supervysor/types"
 	"github.com/prometheus/client_golang/prometheus"
@@ -15,19 +12,18 @@ import (
 )
 
 func GetDirectorySize(dirPath string) (float64, error) {
-	cmd := exec.Command("du", "-sh", "-B", "1G", dirPath)
-	output, err := cmd.Output()
-	if err != nil {
-		return 0, err
-	}
+	var s int64
+	err := filepath.Walk(dirPath, func(_ string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			s += info.Size()
+		}
+		return err
+	})
 
-	// Get the size part from the output
-	size, err := strconv.ParseFloat(strings.Fields(string(output))[0], 64)
-	if err != nil {
-		return 0, err
-	}
-
-	return size, nil
+	return float64(s), err
 }
 
 func GetLogsDir() (string, error) {

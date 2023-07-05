@@ -53,13 +53,10 @@ var startCmd = &cobra.Command{
 			for {
 				dbSize, err := helpers.GetDirectorySize(filepath.Join(config.HomePath, "data"))
 				if err != nil {
-					logger.Error("could not get data directory size", "err", err)
-					if shutdownErr := e.Shutdown(); shutdownErr != nil {
-						logger.Error("could not shutdown node process", "err", shutdownErr)
-					}
-					panic(err)
+					logger.Error("could not get data directory size; will not expose metrics", "err", err)
+				} else {
+					m.DataDirSize.Set(dbSize)
 				}
-				m.DataDirSize.Set(dbSize)
 
 				time.Sleep(time.Second * time.Duration(120))
 			}
