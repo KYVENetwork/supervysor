@@ -21,7 +21,7 @@ func GetDirectorySize(dirPath string) (float64, error) {
 		return 0, err
 	}
 
-	// Get the size part from the output (e.g., "1.5G" or "123M")
+	// Get the size part from the output
 	size, err := strconv.ParseFloat(strings.Fields(string(output))[0], 64)
 	if err != nil {
 		return 0, err

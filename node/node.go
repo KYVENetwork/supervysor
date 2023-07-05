@@ -25,7 +25,7 @@ import (
 // It returns the nodeHeight if successful or an error message if the recursion depth reaches the limit (200s).
 func GetNodeHeight(log log.Logger, p *types.ProcessType, recursionDepth int) (int, error) {
 	if recursionDepth < 10 {
-		if p.Id == 0 {
+		if p.Id == -1 {
 			log.Error(fmt.Sprintf("node hasn't started yet. Try again in 20s ... (%d/10)", recursionDepth+1))
 
 			time.Sleep(time.Second * 20)
@@ -71,14 +71,14 @@ func StartNode(cfg *types.Config, log log.Logger, p *types.ProcessType, initial 
 	addrBookPath := filepath.Join(cfg.HomePath, "config", "addrbook.json")
 
 	if !initial {
-		if err := helpers.MoveAddressBook(false, addrBookPath); err != nil {
+		if err := helpers.MoveAddressBook(false, addrBookPath, log); err != nil {
 			log.Error("could not move address book", "err", err)
 			return nil, err
 		}
 	}
 
 	// To start the node normally when it's not initially, Process ID needs to be = 0 and GhostMode = true
-	if (p.Id != 0 || !p.GhostMode) && !initial {
+	if (p.Id != -1 || !p.GhostMode) && !initial {
 		return nil, fmt.Errorf("process management failed")
 	} else {
 		cmdPath, err := exec.LookPath(cfg.BinaryPath)
@@ -110,7 +110,6 @@ func StartNode(cfg *types.Config, log log.Logger, p *types.ProcessType, initial 
 		args = append(args, flags...)
 
 		cmd := exec.Command(cmdPath, args...)
-
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 
@@ -156,15 +155,14 @@ func StartNode(cfg *types.Config, log log.Logger, p *types.ProcessType, initial 
 func StartGhostNode(cfg *types.Config, log log.Logger, p *types.ProcessType, flags []string) (*os.Process, error) {
 	addrBookPath := filepath.Join(cfg.HomePath, "config", "addrbook.json")
 
-	if err := helpers.MoveAddressBook(true, addrBookPath); err != nil {
+	if err := helpers.MoveAddressBook(true, addrBookPath, log); err != nil {
 		log.Error("could not move address book", "err", err)
 		return nil, err
 	}
-
 	log.Info("address book successfully moved")
 
 	// To start the node in GhostMode, Process ID needs to be = 0 and GhostMode = false
-	if p.Id != 0 || p.GhostMode {
+	if p.Id != -1 || p.GhostMode {
 		return nil, fmt.Errorf("process management failed")
 	} else {
 
@@ -199,7 +197,6 @@ func StartGhostNode(cfg *types.Config, log log.Logger, p *types.ProcessType, fla
 		args = append(args, flags...)
 
 		cmd := exec.Command(cmdPath, args...)
-
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 
@@ -225,7 +222,7 @@ func StartGhostNode(cfg *types.Config, log log.Logger, p *types.ProcessType, fla
 		processID := <-processIDChan
 
 		if processID == -1 {
-			return nil, fmt.Errorf("couldn't start running the node")
+			return nil, fmt.Errorf("could not start running the node")
 		}
 
 		process, err := os.FindProcess(processID)
@@ -238,7 +235,7 @@ func StartGhostNode(cfg *types.Config, log log.Logger, p *types.ProcessType, fla
 }
 
 func ShutdownNode(p *types.ProcessType) error {
-	if p.Id != 0 {
+	if p.Id != -1 {
 		process, err := os.FindProcess(p.Id)
 		if err != nil {
 			return fmt.Errorf("could not find process to shutdown: %s", err)
@@ -248,7 +245,7 @@ func ShutdownNode(p *types.ProcessType) error {
 			return fmt.Errorf("could not terminate process: %s", err)
 		}
 
-		p.Id = 0
+		p.Id = -1
 	}
 
 	return nil

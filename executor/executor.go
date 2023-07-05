@@ -2,6 +2,7 @@ package executor
 
 import (
 	"fmt"
+	"time"
 
 	"cosmossdk.io/log"
 
@@ -16,7 +17,7 @@ type Executor struct {
 }
 
 func NewExecutor(logger *log.Logger, cfg *types.Config) *Executor {
-	return &Executor{Logger: *logger, Cfg: cfg, Process: types.ProcessType{Id: 0, GhostMode: false}}
+	return &Executor{Logger: *logger, Cfg: cfg, Process: types.ProcessType{Id: -1, GhostMode: false}}
 }
 
 // InitialStart initiates the node by starting it in the initial mode.
@@ -43,6 +44,9 @@ func (e *Executor) EnableGhostMode(flags []string) error {
 		if err := node.ShutdownNode(&e.Process); err != nil {
 			e.Logger.Error("could not shutdown node", "err", err)
 		}
+		e.Logger.Info("successfully shut down node", "mode", "normal")
+
+		time.Sleep(time.Second * time.Duration(5))
 
 		process, err := node.StartGhostNode(e.Cfg, e.Logger, &e.Process, flags)
 		if err != nil {
@@ -68,6 +72,9 @@ func (e *Executor) EnableNormalMode(flags []string) error {
 		if err := node.ShutdownNode(&e.Process); err != nil {
 			e.Logger.Error("could not shutdown node", "err", err)
 		}
+		e.Logger.Info("successfully shut down node", "mode", "ghost")
+
+		time.Sleep(time.Second * time.Duration(5))
 
 		process, err := node.StartNode(e.Cfg, e.Logger, &e.Process, false, flags)
 		if err != nil {
