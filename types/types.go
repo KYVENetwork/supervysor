@@ -13,6 +13,7 @@ type Config struct {
 	Interval            int
 	HeightDifferenceMax int
 	HeightDifferenceMin int
+	Metrics             bool
 }
 
 type HeightResponse struct {

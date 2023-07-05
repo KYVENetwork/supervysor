@@ -38,6 +38,7 @@ var startCmd = &cobra.Command{
 			logger.Error("could not load config", "err", err)
 			return err
 		}
+		metrics := config.Metrics
 
 		e := executor.NewExecutor(&logger, config)
 
@@ -49,18 +50,20 @@ var startCmd = &cobra.Command{
 
 		currentMode := "normal"
 
-		go func() {
-			for {
-				dbSize, err := helpers.GetDirectorySize(filepath.Join(config.HomePath, "data"))
-				if err != nil {
-					logger.Error("could not get data directory size; will not expose metrics", "err", err)
-				} else {
-					m.DataDirSize.Set(dbSize)
-				}
+		if metrics {
+			go func() {
+				for {
+					dbSize, err := helpers.GetDirectorySize(filepath.Join(config.HomePath, "data"))
+					if err != nil {
+						logger.Error("could not get data directory size; will not expose metrics", "err", err)
+					} else {
+						m.DataDirSize.Set(dbSize)
+					}
 
-				time.Sleep(time.Second * time.Duration(120))
-			}
-		}()
+					time.Sleep(time.Second * time.Duration(120))
+				}
+			}()
+		}
 
 		for {
 			// Request data source node height and KYVE pool height to calculate difference.
@@ -72,7 +75,9 @@ var startCmd = &cobra.Command{
 				}
 				return err
 			}
-			m.NodeHeight.Set(float64(nodeHeight))
+			if metrics {
+				m.NodeHeight.Set(float64(nodeHeight))
+			}
 
 			poolHeight, err := pool.GetPoolHeight(config.ChainId, config.PoolId, config.FallbackEndpoints)
 			if err != nil {
@@ -82,15 +87,19 @@ var startCmd = &cobra.Command{
 				}
 				return err
 			}
-			m.PoolHeight.Set(float64(*poolHeight))
+			if metrics {
+				m.PoolHeight.Set(float64(*poolHeight))
+			}
 
 			logger.Info("fetched heights successfully", "node", nodeHeight, "pool", poolHeight, "max-height", *poolHeight+config.HeightDifferenceMax, "min-height", *poolHeight+config.HeightDifferenceMin)
 
 			// Calculate height difference to enable the correct mode.
 			heightDiff := nodeHeight - *poolHeight
 
-			m.MaxHeight.Set(float64(*poolHeight + config.HeightDifferenceMax))
-			m.MinHeight.Set(float64(*poolHeight + config.HeightDifferenceMin))
+			if metrics {
+				m.MaxHeight.Set(float64(*poolHeight + config.HeightDifferenceMax))
+				m.MinHeight.Set(float64(*poolHeight + config.HeightDifferenceMin))
+			}
 
 			if heightDiff >= config.HeightDifferenceMax {
 				if currentMode != "ghost" {

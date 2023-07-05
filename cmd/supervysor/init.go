@@ -16,12 +16,13 @@ import (
 )
 
 var (
-	chainId           string
 	binaryPath        string
+	chainId           string
+	fallbackEndpoints string
 	homePath          string
+	metrics           string
 	poolId            int
 	seeds             string
-	fallbackEndpoints string
 
 	// TODO(@christopher): Add custom supervysor settings
 	// stateRequests bool
@@ -60,6 +61,8 @@ func init() {
 
 	initCmd.Flags().StringVar(&fallbackEndpoints, "fallback-endpoints", "", "additional endpoints to query KYVE pool height")
 
+	initCmd.Flags().StringVar(&metrics, "metrics", "true", "exposing Prometheus metrics (true or false)")
+
 	// TODO(@christopher): Add custom supervysor settings
 	//initCmd.Flags().BoolVar(&stateRequests, "state-requests", false, "bool if state-requests are necessary in the pool")
 	//
@@ -80,7 +83,7 @@ var initCmd = &cobra.Command{
 
 // InitializeSupervysor initializes the required supervysor config and performs some basic checks.
 func InitializeSupervysor() error {
-	if err := settings.InitializeSettings(binaryPath, homePath, poolId, false, seeds, chainId, fallbackEndpoints); err != nil {
+	if err := settings.InitializeSettings(binaryPath, homePath, poolId, false, seeds, chainId, fallbackEndpoints, metrics); err != nil {
 		logger.Error("could not initialize settings", "err", err)
 		return err
 	}
@@ -102,6 +105,12 @@ func InitializeSupervysor() error {
 			}
 		}
 		logger.Info("initializing supverysor...")
+
+		m := true
+		if metrics == "false" {
+			m = false
+		}
+
 		config := types.Config{
 			ChainId:           chainId,
 			BinaryPath:        binaryPath,
@@ -109,6 +118,7 @@ func InitializeSupervysor() error {
 			PoolId:            poolId,
 			Seeds:             seeds,
 			FallbackEndpoints: fallbackEndpoints,
+			Metrics:           m,
 
 			// TODO(@christopher): Add custom supervysor settings
 			Interval:            10,

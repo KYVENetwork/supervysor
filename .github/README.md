@@ -91,6 +91,7 @@ supervysor init
 --binary-path         string   'path to chain binaries (e.g. ~/go/bin/osmosisd)'
 --chain-id            string   'KYVE chain-id'
 --home-path           string   'path to home directory (e.g. ~/.osmosisd)'
+--metrics             string   'exposing Prometheus metrics ("true" or "false")'
 --pool-id             int      'KYVE pool-id'
 --seeds               string   'seeds for the node to connect'
 --fallback-endpoints  string   'additional endpoints to query KYVE pool height [optional]'
