@@ -46,7 +46,7 @@ func (e *Executor) EnableGhostMode(flags []string) error {
 		}
 		e.Logger.Info("successfully shut down node", "mode", "normal")
 
-		time.Sleep(time.Second * time.Duration(5))
+		time.Sleep(time.Second * time.Duration(10))
 
 		process, err := node.StartGhostNode(e.Cfg, e.Logger, &e.Process, flags)
 		if err != nil {
@@ -74,7 +74,7 @@ func (e *Executor) EnableNormalMode(flags []string) error {
 		}
 		e.Logger.Info("successfully shut down node", "mode", "ghost")
 
-		time.Sleep(time.Second * time.Duration(5))
+		time.Sleep(time.Second * time.Duration(10))
 
 		process, err := node.StartNode(e.Cfg, e.Logger, &e.Process, false, flags)
 		if err != nil {
