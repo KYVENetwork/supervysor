@@ -37,23 +37,21 @@ func CheckFilePath(path string) error {
 
 // CalculateKeepRecent calculates the value for keepRecent, which is relevant for the pruning settings.
 // It ensures that data that doesn't need to be stored anymore is pruned only after it has been validated.
-// The calculation is based on the KYVE pool settings, and it ensures that blocks are stored for 2 days in advance.
+// The calculation is based on the KYVE pool settings, and it ensures that blocks are stored for 3 days in advance.
 func CalculateKeepRecent(maxBundleSize int, uploadInterval int) int {
 	return int(
 		math.Round(
-			float64(maxBundleSize) / float64(uploadInterval) * 60 * 60 * 24 * 2))
+			float64(maxBundleSize) / float64(uploadInterval) * 60 * 60 * 24 * 3))
 }
 
-// CalculateMaxDifference calculates a crucial threshold for the supervisor architecture.
+// CalculateMaxDifference calculates a crucial threshold for the supervysor architecture.
 // When the node is ahead of the pool by this value, the syncing process will halt in Ghost Mode.
 // Once the node is again halfway within this value, the normal syncing process continues until
-// reaching the threshold again. It's essential for MaxDifference to be smaller than KeepRecent
-// to prevent pruning of unvalidated data. Additionally, this provides the node with a time window
-// of KeepRecent - MaxDifference blocks to discover peers and resume the normal syncing process.
+// reaching the threshold again.
 func CalculateMaxDifference(maxBundleSize int, uploadInterval int) int {
 	return int(
 		math.Round(
-			float64(maxBundleSize) / float64(uploadInterval) * 60 * 60 * 24 * 1))
+			float64(maxBundleSize) / float64(uploadInterval) * 60 * 60 * 24 * 2))
 }
 
 // GetPoolSettings retrieves KYVE pool settings by using a list of endpoints (& optionally fallback endpoints)
@@ -108,17 +106,24 @@ func SetPruningSettings(homePath string, stateRequests bool, keepRecent int, int
 				line = "pruning-keep-recent = \"" + strconv.Itoa(keepRecent) + "\""
 			} else if strings.Contains(line, "pruning-interval =") {
 				line = "pruning-interval = \"" + strconv.Itoa(interval) + "\""
+			} else if strings.Contains(line, "min-retain-blocks =") {
+				line = "min-retain-blocks = 0"
+			} else if strings.Contains(line, "snapshot-interval =") {
+				line = "snapshot-interval = " + strconv.Itoa(0)
 			}
 		} else {
 			if strings.Contains(line, "pruning =") {
-				line = "pruning = \"" + "everything" + "\""
+				line = "pruning = \"" + "custom" + "\""
+			} else if strings.Contains(line, "pruning-keep-recent =") {
+				line = "pruning-keep-recent = \"" + "10" + "\""
+			} else if strings.Contains(line, "pruning-interval =") {
+				line = "pruning-interval = \"" + "100" + "\""
 			} else if strings.Contains(line, "min-retain-blocks =") {
-				line = "min-retain-blocks = " + strconv.Itoa(keepRecent)
+				line = "min-retain-blocks = 0"
 			} else if strings.Contains(line, "snapshot-interval =") {
 				line = "snapshot-interval = " + strconv.Itoa(0)
 			}
 		}
-
 		updatedLines = append(updatedLines, line)
 	}
 
@@ -128,12 +133,6 @@ func SetPruningSettings(homePath string, stateRequests bool, keepRecent int, int
 
 	if err = writeUpdatedConfig(configPath, updatedLines); err != nil {
 		return err
-	}
-
-	if stateRequests {
-		logger.Info("successfully updated pruning settings", "pruning", "custom", "keep-recent", keepRecent, "interval", interval)
-	} else {
-		logger.Info("successfully updated pruning settings", "pruning", "everything", "min-retain-blocks", keepRecent, "keep-recent", 1000, "interval", 100)
 	}
 
 	return nil

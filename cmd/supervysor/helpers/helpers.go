@@ -6,9 +6,12 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/spf13/viper"
+
 	"github.com/KYVENetwork/supervysor/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	cfg "github.com/tendermint/tendermint/config"
 )
 
 func GetDirectorySize(dirPath string) (float64, error) {
@@ -60,6 +63,27 @@ func GetSupervysorDir() (string, error) {
 	}
 
 	return supervysorDir, nil
+}
+
+func LoadConfig(homeDir string) (config *cfg.Config, err error) {
+	config = cfg.DefaultConfig()
+
+	viper.SetConfigName("config")
+	viper.SetConfigType("toml")
+	viper.AddConfigPath(homeDir)
+	viper.AddConfigPath(filepath.Join(homeDir, "config"))
+
+	if err := viper.ReadInConfig(); err != nil {
+		return nil, err
+	}
+
+	if err := viper.Unmarshal(config); err != nil {
+		return nil, err
+	}
+
+	config.SetRoot(homeDir)
+
+	return config, nil
 }
 
 func NewMetrics(reg prometheus.Registerer) *types.Metrics {

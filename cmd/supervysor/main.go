@@ -36,13 +36,18 @@ func main() {
 		panic(err)
 	}
 
-	multiLogger := io.MultiWriter(zerolog.ConsoleWriter{Out: os.Stdout}, file)
-
+	writer := io.MultiWriter(os.Stdout)
+	customConsoleWriter := zerolog.ConsoleWriter{Out: writer}
+	customConsoleWriter.FormatCaller = func(i interface{}) string {
+		return "\x1b[36m[supervysor]\x1b[0m"
+	}
+	multiLogger := io.MultiWriter(customConsoleWriter, file)
 	logger = log.NewCustomLogger(zerolog.New(multiLogger).With().Timestamp().Logger())
 
 	supervysor.AddCommand(initCmd)
 	supervysor.AddCommand(startCmd)
 	supervysor.AddCommand(versionCmd)
+	supervysor.AddCommand(pruneCmd)
 
 	if err = supervysor.Execute(); err != nil {
 		os.Exit(1)

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/KYVENetwork/supervysor/store"
+
 	"cosmossdk.io/log"
 
 	"github.com/KYVENetwork/supervysor/node"
@@ -12,18 +14,18 @@ import (
 
 type Executor struct {
 	Logger  log.Logger
-	Cfg     *types.Config
+	Cfg     *types.SupervysorConfig
 	Process types.ProcessType
 }
 
-func NewExecutor(logger *log.Logger, cfg *types.Config) *Executor {
+func NewExecutor(logger *log.Logger, cfg *types.SupervysorConfig) *Executor {
 	return &Executor{Logger: *logger, Cfg: cfg, Process: types.ProcessType{Id: -1, GhostMode: false}}
 }
 
 // InitialStart initiates the node by starting it in the initial mode.
 func (e *Executor) InitialStart(flags []string) error {
 	e.Logger.Info("starting initially")
-	process, err := node.StartNode(e.Cfg, e.Logger, &e.Process, true, flags)
+	process, err := node.StartNode(e.Cfg, e.Logger, &e.Process, true, false, flags)
 	if err != nil {
 		return fmt.Errorf("could not start node initially: %s", err)
 	}
@@ -35,6 +37,8 @@ func (e *Executor) InitialStart(flags []string) error {
 
 	return nil
 }
+
+// TODO: Create one generic StartNode function which gets a mode as input. Mode is managed in start.go.
 
 // EnableGhostMode activates the Ghost Mode by starting the node in GhostMode if it is not already enabled.
 // If not, it shuts down the node running in NormalMode, initiates the GhostMode and updates the process ID
@@ -48,7 +52,7 @@ func (e *Executor) EnableGhostMode(flags []string) error {
 
 		time.Sleep(time.Second * time.Duration(10))
 
-		process, err := node.StartGhostNode(e.Cfg, e.Logger, &e.Process, flags)
+		process, err := node.StartGhostNode(e.Cfg, e.Logger, &e.Process, false, flags)
 		if err != nil {
 			return fmt.Errorf("Ghost Mode enabling failed: %s", err)
 		} else {
@@ -76,7 +80,7 @@ func (e *Executor) EnableNormalMode(flags []string) error {
 
 		time.Sleep(time.Second * time.Duration(10))
 
-		process, err := node.StartNode(e.Cfg, e.Logger, &e.Process, false, flags)
+		process, err := node.StartNode(e.Cfg, e.Logger, &e.Process, false, false, flags)
 		if err != nil {
 			return fmt.Errorf("Ghost Mode disabling failed: %s", err)
 		} else {
@@ -86,6 +90,46 @@ func (e *Executor) EnableNormalMode(flags []string) error {
 				e.Logger.Info("Node started in Normal Mode", "pId", process.Pid)
 			} else {
 				return fmt.Errorf("Ghost Mode disabling failed: process is not defined")
+			}
+		}
+	}
+	return nil
+}
+
+func (e *Executor) PruneBlocks(homePath string, pruneHeight int, flags []string) error {
+	if err := e.Shutdown(); err != nil {
+		e.Logger.Error("could not shutdown node process", "err", err)
+		return err
+	}
+	err := store.PruneBlocks(homePath, int64(pruneHeight)-1, e.Logger)
+	if err != nil {
+		e.Logger.Error("could not prune blocks, exiting")
+		return err
+	}
+	if e.Process.GhostMode {
+		process, err := node.StartGhostNode(e.Cfg, e.Logger, &e.Process, true, flags)
+		if err != nil {
+			return fmt.Errorf("Ghost Mode enabling failed: %s", err)
+		} else {
+			if process != nil && process.Pid > 0 {
+				e.Process.Id = process.Pid
+				e.Process.GhostMode = true
+				e.Logger.Info("node started in GhostMode after pruning blocks")
+			} else {
+				return fmt.Errorf("enabling Ghost Mode failed: process is not defined")
+			}
+		}
+	} else {
+		process, err := node.StartNode(e.Cfg, e.Logger, &e.Process, false, true, flags)
+		if err != nil {
+			return fmt.Errorf("Ghost Mode disabling failed: %s", err)
+		} else {
+			if process != nil && process.Pid > 0 {
+				e.Process.Id = process.Pid
+				e.Process.GhostMode = false
+				e.Logger.Info("Node started in Normal Mode after pruning blocks", "pId", process.Pid)
+			} else {
+				return fmt.Errorf("GhostMode disabling failed: process is not defined")
 			}
 		}
 	}

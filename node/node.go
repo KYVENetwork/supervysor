@@ -67,7 +67,7 @@ func GetNodeHeight(log log.Logger, p *types.ProcessType, recursionDepth int) (in
 // StartNode starts the node process in Normal Mode and returns the os.Process object representing
 // the running process. It checks if the node is being started initially or not, moves the
 // address book if necessary, and sets the appropriate command arguments based on the binaryPath.
-func StartNode(cfg *types.Config, log log.Logger, p *types.ProcessType, initial bool, flags []string) (*os.Process, error) {
+func StartNode(cfg *types.SupervysorConfig, log log.Logger, p *types.ProcessType, initial bool, restart bool, flags []string) (*os.Process, error) {
 	addrBookPath := filepath.Join(cfg.HomePath, "config", "addrbook.json")
 
 	if !initial {
@@ -78,7 +78,7 @@ func StartNode(cfg *types.Config, log log.Logger, p *types.ProcessType, initial 
 	}
 
 	// To start the node normally when it's not initially, Process ID needs to be = 0 and GhostMode = true
-	if (p.Id != -1 || !p.GhostMode) && !initial {
+	if (p.Id != -1 || !p.GhostMode) && !(initial || restart) {
 		return nil, fmt.Errorf("process management failed")
 	} else {
 		cmdPath, err := exec.LookPath(cfg.BinaryPath)
@@ -105,6 +105,8 @@ func StartNode(cfg *types.Config, log log.Logger, p *types.ProcessType, initial 
 
 		if cfg.HomePath != "" {
 			args = append(args, "--home", cfg.HomePath)
+		} else {
+			return nil, fmt.Errorf("empty home path in config")
 		}
 
 		args = append(args, flags...)
@@ -152,7 +154,7 @@ func StartNode(cfg *types.Config, log log.Logger, p *types.ProcessType, initial 
 // representing the running process. It moves the address book, checks if the node is already running
 // or in Ghost Mode ands sets the appropriate command arguments based on the binaryPath.
 // It starts the node without seeds and with a changed laddr, so the node can't continue syncing.
-func StartGhostNode(cfg *types.Config, log log.Logger, p *types.ProcessType, flags []string) (*os.Process, error) {
+func StartGhostNode(cfg *types.SupervysorConfig, log log.Logger, p *types.ProcessType, restart bool, flags []string) (*os.Process, error) {
 	addrBookPath := filepath.Join(cfg.HomePath, "config", "addrbook.json")
 
 	if err := helpers.MoveAddressBook(true, addrBookPath, log); err != nil {
@@ -162,7 +164,7 @@ func StartGhostNode(cfg *types.Config, log log.Logger, p *types.ProcessType, fla
 	log.Info("address book successfully moved")
 
 	// To start the node in GhostMode, Process ID needs to be = 0 and GhostMode = false
-	if p.Id != -1 || p.GhostMode {
+	if p.Id != -1 || p.GhostMode && !restart {
 		return nil, fmt.Errorf("process management failed")
 	} else {
 
@@ -244,6 +246,8 @@ func ShutdownNode(p *types.ProcessType) error {
 		if err = process.Signal(syscall.SIGTERM); err != nil {
 			return fmt.Errorf("could not terminate process: %s", err)
 		}
+
+		time.Sleep(time.Second * time.Duration(20))
 
 		p.Id = -1
 	}

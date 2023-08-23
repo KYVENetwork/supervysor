@@ -23,14 +23,9 @@ var (
 	metrics           string
 	poolId            int
 	seeds             string
+	pruningInterval   int
 
-	// TODO(@christopher): Add custom supervysor settings
-	// stateRequests bool
-	// interval            int
-	// heightDifferenceMax int
-	// heightDifferenceMin int
-
-	cfg types.Config
+	cfg types.SupervysorConfig
 )
 
 func init() {
@@ -61,16 +56,9 @@ func init() {
 
 	initCmd.Flags().StringVar(&fallbackEndpoints, "fallback-endpoints", "", "additional endpoints to query KYVE pool height")
 
-	initCmd.Flags().StringVar(&metrics, "metrics", "true", "exposing Prometheus metrics (true or false)")
+	initCmd.Flags().IntVar(&pruningInterval, "pruning-interval", 24, "block-pruning interval (hours)")
 
-	// TODO(@christopher): Add custom supervysor settings
-	//initCmd.Flags().BoolVar(&stateRequests, "state-requests", false, "bool if state-requests are necessary in the pool")
-	//
-	//initCmd.Flags().IntVar(&interval, "interval", 10, "interval to check height difference in seconds")
-	//
-	//initCmd.Flags().IntVar(&heightDifferenceMax, "height-difference-max", 10000, "max difference of pool-height and node-height to enable Ghost Mode")
-	//
-	//initCmd.Flags().IntVar(&heightDifferenceMin, "height-difference-min", 5000, "min difference of pool-height and node-height to enable Normal Mode")
+	initCmd.Flags().StringVar(&metrics, "metrics", "true", "exposing Prometheus metrics (true or false)")
 }
 
 var initCmd = &cobra.Command{
@@ -83,10 +71,20 @@ var initCmd = &cobra.Command{
 
 // InitializeSupervysor initializes the required supervysor config and performs some basic checks.
 func InitializeSupervysor() error {
+	if homePath == "" {
+		logger.Error("home directory can not be empty")
+		return fmt.Errorf("empty home directory path")
+	}
+
+	if pruningInterval <= 6 {
+		logger.Error("pruning-interval should be higher than 6 hours")
+	}
+
 	if err := settings.InitializeSettings(binaryPath, homePath, poolId, false, seeds, chainId, fallbackEndpoints, metrics); err != nil {
 		logger.Error("could not initialize settings", "err", err)
 		return err
 	}
+	logger.Info("successfully initialized settings")
 
 	configPath, err := helpers.GetSupervysorDir()
 	if err != nil {
@@ -111,16 +109,15 @@ func InitializeSupervysor() error {
 			m = false
 		}
 
-		config := types.Config{
-			ChainId:           chainId,
-			BinaryPath:        binaryPath,
-			HomePath:          homePath,
-			PoolId:            poolId,
-			Seeds:             seeds,
-			FallbackEndpoints: fallbackEndpoints,
-			Metrics:           m,
-
-			// TODO(@christopher): Add custom supervysor settings
+		config := types.SupervysorConfig{
+			ChainId:             chainId,
+			BinaryPath:          binaryPath,
+			HomePath:            homePath,
+			PoolId:              poolId,
+			Seeds:               seeds,
+			FallbackEndpoints:   fallbackEndpoints,
+			PruningInterval:     pruningInterval,
+			Metrics:             m,
 			Interval:            10,
 			HeightDifferenceMax: settings.Settings.MaxDifference,
 			HeightDifferenceMin: settings.Settings.MaxDifference / 2,
@@ -138,7 +135,7 @@ func InitializeSupervysor() error {
 			return err
 		}
 
-		_, err = getConfig()
+		_, err = getSupervysorConfig()
 		if err != nil {
 			logger.Error("could not load config file", "err", err)
 			return err
@@ -152,8 +149,8 @@ func InitializeSupervysor() error {
 	}
 }
 
-// getConfig returns the supervysor config.toml file.
-func getConfig() (*types.Config, error) {
+// getSupervysorConfig returns the supervysor config.toml file.
+func getSupervysorConfig() (*types.SupervysorConfig, error) {
 	configPath, err := helpers.GetSupervysorDir()
 	if err != nil {
 		return nil, fmt.Errorf("could not get supervysor directory path: %s", err)

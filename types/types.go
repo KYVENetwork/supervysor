@@ -1,20 +1,29 @@
 package types
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"github.com/prometheus/client_golang/prometheus"
+	tmCfg "github.com/tendermint/tendermint/config"
+	tmTypes "github.com/tendermint/tendermint/types"
+)
 
-type Config struct {
+type SupervysorConfig struct {
 	ChainId             string
 	BinaryPath          string
 	HomePath            string
 	PoolId              int
 	Seeds               string
 	FallbackEndpoints   string
+	PruningInterval     int
 	StateRequests       bool
 	Interval            int
 	HeightDifferenceMax int
 	HeightDifferenceMin int
 	Metrics             bool
 }
+
+type Config = tmCfg.Config
+
+type GenesisDoc = tmTypes.GenesisDoc
 
 type HeightResponse struct {
 	Result struct {

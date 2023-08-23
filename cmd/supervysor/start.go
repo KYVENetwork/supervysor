@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"path/filepath"
 	"time"
 
@@ -33,7 +34,7 @@ var startCmd = &cobra.Command{
 		}()
 
 		// Load initialized config.
-		config, err := getConfig()
+		config, err := getSupervysorConfig()
 		if err != nil {
 			logger.Error("could not load config", "err", err)
 			return err
@@ -65,6 +66,7 @@ var startCmd = &cobra.Command{
 			}()
 		}
 
+		var pruningCount float64 = 0
 		for {
 			// Request data source node height and KYVE pool height to calculate difference.
 			nodeHeight, err := e.GetHeight()
@@ -88,23 +90,38 @@ var startCmd = &cobra.Command{
 				return err
 			}
 			if metrics {
-				m.PoolHeight.Set(float64(*poolHeight))
+				m.PoolHeight.Set(float64(poolHeight))
 			}
 
-			logger.Info("fetched heights successfully", "node", nodeHeight, "pool", poolHeight, "max-height", *poolHeight+config.HeightDifferenceMax, "min-height", *poolHeight+config.HeightDifferenceMin)
+			logger.Info("fetched heights successfully", "node", nodeHeight, "pool", poolHeight, "max-height", poolHeight+config.HeightDifferenceMax, "min-height", poolHeight+config.HeightDifferenceMin)
+
+			logger.Info("current pruning count", "pruning-count", fmt.Sprintf("%.2f", pruningCount), "pruning-threshold", config.PruningInterval)
+			if pruningCount > float64(config.PruningInterval) && currentMode == "ghost" && nodeHeight > 0 {
+				pruneHeight := poolHeight
+				if nodeHeight < poolHeight {
+					pruneHeight = nodeHeight
+				}
+				logger.Info("pruning blocks after node shutdown", "until-height", pruneHeight)
+
+				err = e.PruneBlocks(config.HomePath, pruneHeight-1, flags)
+				if err != nil {
+					logger.Error("could not prune blocks", "err", err)
+					return err
+				}
+				pruningCount = 0
+			}
 
 			// Calculate height difference to enable the correct mode.
-			heightDiff := nodeHeight - *poolHeight
+			heightDiff := nodeHeight - poolHeight
 
 			if metrics {
-				m.MaxHeight.Set(float64(*poolHeight + config.HeightDifferenceMax))
-				m.MinHeight.Set(float64(*poolHeight + config.HeightDifferenceMin))
+				m.MaxHeight.Set(float64(poolHeight + config.HeightDifferenceMax))
+				m.MinHeight.Set(float64(poolHeight + config.HeightDifferenceMin))
 			}
 
 			if heightDiff >= config.HeightDifferenceMax {
 				if currentMode != "ghost" {
 					logger.Info("enabling GhostMode")
-					currentMode = "ghost"
 				} else {
 					logger.Info("keeping GhostMode")
 				}
@@ -117,13 +134,13 @@ var startCmd = &cobra.Command{
 					}
 					return err
 				}
+				currentMode = "ghost"
 			} else if heightDiff < config.HeightDifferenceMax && heightDiff > config.HeightDifferenceMin {
 				// No threshold reached, keep current mode
 				logger.Info("keeping current Mode", "mode", currentMode, "height-difference", heightDiff)
 			} else {
 				if currentMode != "normal" {
 					logger.Info("enabling NormalMode")
-					currentMode = "normal"
 				} else {
 					logger.Info("keeping NormalMode")
 				}
@@ -136,11 +153,14 @@ var startCmd = &cobra.Command{
 					}
 					return err
 				}
+				currentMode = "normal"
+
 				// Diff < 0, can't use node as data source
 				if heightDiff <= 0 {
 					logger.Info("node has not reached pool height yet, can not use it as data source")
 				}
 			}
+			pruningCount = pruningCount + float64(config.Interval)/60/60
 			time.Sleep(time.Second * time.Duration(config.Interval))
 		}
 	},
