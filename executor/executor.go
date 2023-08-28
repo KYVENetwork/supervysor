@@ -38,8 +38,6 @@ func (e *Executor) InitialStart(flags []string) error {
 	return nil
 }
 
-// TODO: Create one generic StartNode function which gets a mode as input. Mode is managed in start.go.
-
 // EnableGhostMode activates the Ghost Mode by starting the node in GhostMode if it is not already enabled.
 // If not, it shuts down the node running in NormalMode, initiates the GhostMode and updates the process ID
 // and GhostMode upon success.
@@ -137,7 +135,7 @@ func (e *Executor) PruneBlocks(homePath string, pruneHeight int, flags []string)
 }
 
 func (e *Executor) GetHeight() (int, error) {
-	return node.GetNodeHeight(e.Logger, &e.Process, 0)
+	return node.GetNodeHeight(e.Logger, &e.Process, e.Cfg.ABCIEndpoint, 0)
 }
 
 func (e *Executor) Shutdown() error {

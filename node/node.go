@@ -23,22 +23,22 @@ import (
 // The GetNodeHeight function retrieves the height of the node by querying the ABCI endpoint.
 // It uses recursion with a maximum depth of 10 to handle delays or failures.
 // It returns the nodeHeight if successful or an error message if the recursion depth reaches the limit (200s).
-func GetNodeHeight(log log.Logger, p *types.ProcessType, recursionDepth int) (int, error) {
+func GetNodeHeight(log log.Logger, p *types.ProcessType, abciEndpoint string, recursionDepth int) (int, error) {
 	if recursionDepth < 10 {
 		if p.Id == -1 {
 			log.Error(fmt.Sprintf("node hasn't started yet. Try again in 20s ... (%d/10)", recursionDepth+1))
 
 			time.Sleep(time.Second * 20)
-			return GetNodeHeight(log, p, recursionDepth+1)
+			return GetNodeHeight(log, p, abciEndpoint, recursionDepth+1)
 		}
 
-		response, err := http.Get(types.ABCIEndpoint)
+		response, err := http.Get(abciEndpoint + "/abci_info?")
 
 		if err != nil {
 			log.Error(fmt.Sprintf("failed to query height. Try again in 20s ... (%d/10)", recursionDepth+1))
 
 			time.Sleep(time.Second * 20)
-			return GetNodeHeight(log, p, recursionDepth+1)
+			return GetNodeHeight(log, p, abciEndpoint, recursionDepth+1)
 		} else {
 			responseData, err := io.ReadAll(response.Body)
 			if err != nil {

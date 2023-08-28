@@ -1,9 +1,5 @@
 package types
 
-const (
-	ABCIEndpoint = "http://127.0.0.1:26657/abci_info?"
-)
-
 var (
 	KaonEndpoints = []string{
 		"https://api-eu-1.kaon.kyve.network",

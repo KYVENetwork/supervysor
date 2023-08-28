@@ -16,6 +16,7 @@ import (
 )
 
 var (
+	abciEndpoint      string
 	binaryPath        string
 	chainId           string
 	fallbackEndpoints string
@@ -59,6 +60,8 @@ func init() {
 	initCmd.Flags().IntVar(&pruningInterval, "pruning-interval", 24, "block-pruning interval (hours)")
 
 	initCmd.Flags().StringVar(&metrics, "metrics", "true", "exposing Prometheus metrics (true or false)")
+
+	initCmd.Flags().StringVar(&abciEndpoint, "abci-endpoint", "http://127.0.0.1:26657", "ABCI Endpoint to request node information")
 }
 
 var initCmd = &cobra.Command{
@@ -110,6 +113,7 @@ func InitializeSupervysor() error {
 		}
 
 		config := types.SupervysorConfig{
+			ABCIEndpoint:        abciEndpoint,
 			ChainId:             chainId,
 			BinaryPath:          binaryPath,
 			HomePath:            homePath,

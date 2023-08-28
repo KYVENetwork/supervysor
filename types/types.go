@@ -7,8 +7,9 @@ import (
 )
 
 type SupervysorConfig struct {
-	ChainId             string
+	ABCIEndpoint        string
 	BinaryPath          string
+	ChainId             string
 	HomePath            string
 	PoolId              int
 	Seeds               string
