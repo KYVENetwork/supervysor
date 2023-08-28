@@ -137,9 +137,9 @@ With your node being able to run using Cosmovisor, you can stop the process and 
 ```bash
 supervysor init \
 --binary-path '/root/go/bin/cosmovisor' \
---chain-id 'korellia' \
+--chain-id 'kyve-1' \
 --home-path '/root/.osmosisd' \
---pool-id 27 \
+--pool-id 1 \
 --seeds '6bcdbcfd5d2c6ba58460f10dbcfde58278212833@osmosis.artifact-staking.io:26656,ade4d8bc8cbe014af6ebdf3cb7b1e9ad36f412c0@seeds.polkachu.com:12556'
 ```
 
