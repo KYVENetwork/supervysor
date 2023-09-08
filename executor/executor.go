@@ -104,6 +104,7 @@ func (e *Executor) PruneBlocks(homePath string, pruneHeight int, flags []string)
 		e.Logger.Error("could not prune blocks, exiting")
 		return err
 	}
+
 	if e.Process.GhostMode {
 		process, err := node.StartGhostNode(e.Cfg, e.Logger, &e.Process, true, flags)
 		if err != nil {
