@@ -48,6 +48,7 @@ func main() {
 	supervysor.AddCommand(startCmd)
 	supervysor.AddCommand(versionCmd)
 	supervysor.AddCommand(pruneCmd)
+	supervysor.AddCommand(backupCmd)
 
 	if err = supervysor.Execute(); err != nil {
 		os.Exit(1)

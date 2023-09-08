@@ -2,7 +2,6 @@ package store
 
 import (
 	"github.com/KYVENetwork/supervysor/types"
-	nm "github.com/tendermint/tendermint/node"
 	"github.com/tendermint/tendermint/state"
 	"github.com/tendermint/tendermint/store"
 	dbm "github.com/tendermint/tm-db"
@@ -38,20 +37,4 @@ func GetBlockstoreDBs(config *types.Config) (dbm.DB, *store.BlockStore, error) {
 	blockStore := store.NewBlockStore(blockStoreDB)
 
 	return blockStoreDB, blockStore, nil
-}
-
-func GetStateAndGenDoc(config *types.Config) (*state.State, *types.GenesisDoc, error) {
-	stateDB, _, err := GetStateDBs(config)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	defaultDocProvider := nm.DefaultGenesisDocProviderFunc(config)
-
-	s, genDoc, err := nm.LoadStateFromDBOrGenesisDocProvider(stateDB, defaultDocProvider)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return &s, genDoc, nil
 }

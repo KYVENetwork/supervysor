@@ -21,7 +21,7 @@ var (
 	chainId           string
 	fallbackEndpoints string
 	homePath          string
-	metrics           string
+	metrics           bool
 	poolId            int
 	seeds             string
 	pruningInterval   int
@@ -59,7 +59,7 @@ func init() {
 
 	initCmd.Flags().IntVar(&pruningInterval, "pruning-interval", 24, "block-pruning interval (hours)")
 
-	initCmd.Flags().StringVar(&metrics, "metrics", "true", "exposing Prometheus metrics (true or false)")
+	initCmd.Flags().BoolVar(&metrics, "metrics", true, "exposing Prometheus metrics (true or false)")
 
 	initCmd.Flags().StringVar(&abciEndpoint, "abci-endpoint", "http://127.0.0.1:26657", "ABCI Endpoint to request node information")
 }
@@ -83,7 +83,7 @@ func InitializeSupervysor() error {
 		logger.Error("pruning-interval should be higher than 6 hours")
 	}
 
-	if err := settings.InitializeSettings(binaryPath, homePath, poolId, false, seeds, chainId, fallbackEndpoints, metrics); err != nil {
+	if err := settings.InitializeSettings(binaryPath, homePath, poolId, false, seeds, chainId, fallbackEndpoints); err != nil {
 		logger.Error("could not initialize settings", "err", err)
 		return err
 	}
@@ -107,22 +107,17 @@ func InitializeSupervysor() error {
 		}
 		logger.Info("initializing supverysor...")
 
-		m := true
-		if metrics == "false" {
-			m = false
-		}
-
 		config := types.SupervysorConfig{
 			ABCIEndpoint:        abciEndpoint,
-			ChainId:             chainId,
 			BinaryPath:          binaryPath,
+			ChainId:             chainId,
 			HomePath:            homePath,
+			Interval:            10,
+			Metrics:             metrics,
 			PoolId:              poolId,
 			Seeds:               seeds,
 			FallbackEndpoints:   fallbackEndpoints,
 			PruningInterval:     pruningInterval,
-			Metrics:             m,
-			Interval:            10,
 			HeightDifferenceMax: settings.Settings.MaxDifference,
 			HeightDifferenceMin: settings.Settings.MaxDifference / 2,
 			StateRequests:       false,

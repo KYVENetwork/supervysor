@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/spf13/viper"
 
@@ -13,6 +14,18 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	cfg "github.com/tendermint/tendermint/config"
 )
+
+func CreateDestPath(backupDir string) (string, error) {
+	t := time.Now().Format("20060102_150405")
+
+	if err := os.Mkdir(filepath.Join(backupDir, t), 0o755); err != nil {
+		return "", fmt.Errorf("error creating backup directory: %v", err)
+	}
+	if err := os.Mkdir(filepath.Join(backupDir, t, "data"), 0o755); err != nil {
+		return "", fmt.Errorf("error creating data backup directory: %v", err)
+	}
+	return filepath.Join(backupDir, t, "data"), nil
+}
 
 func GetDirectorySize(dirPath string) (float64, error) {
 	var s int64
@@ -45,6 +58,23 @@ func GetLogsDir() (string, error) {
 	}
 
 	return logsDir, nil
+}
+
+func GetBackupDir() (string, error) {
+	home, err := GetSupervysorDir()
+	if err != nil {
+		return "", fmt.Errorf("could not find home directory: %s", err)
+	}
+
+	backupDir := filepath.Join(home, "backups")
+	if _, err = os.Stat(backupDir); os.IsNotExist(err) {
+		err = os.Mkdir(backupDir, 0o755)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	return backupDir, nil
 }
 
 func GetSupervysorDir() (string, error) {
@@ -126,5 +156,24 @@ func StartMetricsServer(reg *prometheus.Registry) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func ValidatePaths(srcPath, destPath string) error {
+	pathInfo, err := os.Stat(srcPath)
+	if err != nil {
+		return err
+	}
+	if !pathInfo.IsDir() {
+		return err
+	}
+	pathInfo, err = os.Stat(destPath)
+	if err != nil {
+		return err
+	}
+	if !pathInfo.IsDir() {
+		return err
+	}
+
 	return nil
 }

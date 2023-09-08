@@ -95,20 +95,22 @@ var startCmd = &cobra.Command{
 
 			logger.Info("fetched heights successfully", "node", nodeHeight, "pool", poolHeight, "max-height", poolHeight+config.HeightDifferenceMax, "min-height", poolHeight+config.HeightDifferenceMin)
 
-			logger.Info("current pruning count", "pruning-count", fmt.Sprintf("%.2f", pruningCount), "pruning-threshold", config.PruningInterval)
-			if pruningCount > float64(config.PruningInterval) && currentMode == "ghost" && nodeHeight > 0 {
-				pruneHeight := poolHeight
-				if nodeHeight < poolHeight {
-					pruneHeight = nodeHeight
-				}
-				logger.Info("pruning blocks after node shutdown", "until-height", pruneHeight)
+			if config.PruningInterval != 0 {
+				logger.Info("current pruning count", "pruning-count", fmt.Sprintf("%.2f", pruningCount), "pruning-threshold", config.PruningInterval)
+				if pruningCount > float64(config.PruningInterval) && currentMode == "ghost" && nodeHeight > 0 {
+					pruneHeight := poolHeight
+					if nodeHeight < poolHeight {
+						pruneHeight = nodeHeight
+					}
+					logger.Info("pruning blocks after node shutdown", "until-height", pruneHeight)
 
-				err = e.PruneBlocks(config.HomePath, pruneHeight-1, flags)
-				if err != nil {
-					logger.Error("could not prune blocks", "err", err)
-					return err
+					err = e.PruneBlocks(config.HomePath, pruneHeight-1, flags)
+					if err != nil {
+						logger.Error("could not prune blocks", "err", err)
+						return err
+					}
+					pruningCount = 0
 				}
-				pruningCount = 0
 			}
 
 			// Calculate height difference to enable the correct mode.
