@@ -22,17 +22,6 @@ var startCmd = &cobra.Command{
 	Short:              "Start a supervysed Tendermint node",
 	DisableFlagParsing: true,
 	RunE: func(cmd *cobra.Command, flags []string) error {
-		// Create Prometheus registry
-		reg := prometheus.NewRegistry()
-		m := helpers.NewMetrics(reg)
-
-		go func() {
-			err := helpers.StartMetricsServer(reg)
-			if err != nil {
-				panic(err)
-			}
-		}()
-
 		// Load initialized config.
 		config, err := getSupervysorConfig()
 		if err != nil {
@@ -40,6 +29,19 @@ var startCmd = &cobra.Command{
 			return err
 		}
 		metrics := config.Metrics
+
+		// Create Prometheus registry
+		reg := prometheus.NewRegistry()
+		m := helpers.NewMetrics(reg)
+
+		if metrics {
+			go func() {
+				err := helpers.StartMetricsServer(reg, metricsPort)
+				if err != nil {
+					panic(err)
+				}
+			}()
+		}
 
 		e := executor.NewExecutor(&logger, config)
 

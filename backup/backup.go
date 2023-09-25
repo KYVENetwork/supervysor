@@ -7,7 +7,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"sort"
-	"strings"
 )
 
 func ClearBackups(srcPath string, threshold int) error {
@@ -20,10 +19,7 @@ func ClearBackups(srcPath string, threshold int) error {
 	backups := []os.DirEntry{}
 	for _, entry := range entries {
 		if entry.IsDir() {
-			// Make sure to only clear timestamped backups
-			if strings.HasPrefix(entry.Name(), "20") && len(entry.Name()) == 15 {
-				backups = append(backups, entry)
-			}
+			backups = append(backups, entry)
 		}
 	}
 

@@ -99,9 +99,9 @@ To use the supervysor, you first need to initialize it:
 
 ```bash
 supervysor init
---binary-path         string   'path to chain binaries (e.g. ~/go/bin/osmosisd)'
+--binary              string   'path to chain binaries (e.g. ~/go/bin/osmosisd)'
 --chain-id            string   'KYVE chain-id'
---home-path           string   'path to home directory (e.g. ~/.osmosisd)'
+--home                string   'path to home directory (e.g. ~/.osmosisd)'
 --metrics             string   'exposing Prometheus metrics ("true" or "false")'
 --pool-id             int      'KYVE pool-id'
 --seeds               string   'seeds for the node to connect'
@@ -136,9 +136,9 @@ With your node being able to run using Cosmovisor, you can stop the process and 
 
 ```bash
 supervysor init \
---binary-path '/root/go/bin/cosmovisor' \
+--binary '/root/go/bin/cosmovisor' \
 --chain-id 'kyve-1' \
---home-path '/root/.osmosisd' \
+--home '/root/.osmosisd' \
 --pool-id 1 \
 --seeds '6bcdbcfd5d2c6ba58460f10dbcfde58278212833@osmosis.artifact-staking.io:26656,ade4d8bc8cbe014af6ebdf3cb7b1e9ad36f412c0@seeds.polkachu.com:12556'
 ```

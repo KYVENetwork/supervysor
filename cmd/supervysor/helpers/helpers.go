@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"time"
+	"strconv"
 
 	"github.com/spf13/viper"
 
@@ -15,16 +15,15 @@ import (
 	cfg "github.com/tendermint/tendermint/config"
 )
 
-func CreateDestPath(backupDir string) (string, error) {
-	t := time.Now().Format("20060102_150405")
-
-	if err := os.Mkdir(filepath.Join(backupDir, t), 0o755); err != nil {
+func CreateDestPath(backupDir string, latestHeight int64) (string, error) {
+	if err := os.Mkdir(filepath.Join(backupDir, strconv.FormatInt(latestHeight, 10)), 0o755); err != nil {
 		return "", fmt.Errorf("error creating backup directory: %v", err)
 	}
-	if err := os.Mkdir(filepath.Join(backupDir, t, "data"), 0o755); err != nil {
+	fmt.Println(filepath.Join(backupDir, strconv.FormatInt(latestHeight, 10)))
+	if err := os.Mkdir(filepath.Join(backupDir, strconv.FormatInt(latestHeight, 10), "data"), 0o755); err != nil {
 		return "", fmt.Errorf("error creating data backup directory: %v", err)
 	}
-	return filepath.Join(backupDir, t, "data"), nil
+	return filepath.Join(backupDir, strconv.FormatInt(latestHeight, 10), "data"), nil
 }
 
 func GetDirectorySize(dirPath string) (float64, error) {
@@ -148,11 +147,11 @@ func NewMetrics(reg prometheus.Registerer) *types.Metrics {
 	return m
 }
 
-func StartMetricsServer(reg *prometheus.Registry) error {
+func StartMetricsServer(reg *prometheus.Registry, port int) error {
 	// Create metrics endpoint
 	promHandler := promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
 	http.Handle("/metrics", promHandler)
-	err := http.ListenAndServe(":26660", nil)
+	err := http.ListenAndServe(fmt.Sprintf(":%v", port), nil)
 	if err != nil {
 		return err
 	}
