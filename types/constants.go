@@ -17,5 +17,5 @@ var (
 )
 
 const (
-	BackoffMaxRetries = 10
+	BackoffMaxRetries = 15
 )
