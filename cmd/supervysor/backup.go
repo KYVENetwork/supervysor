@@ -23,7 +23,7 @@ func init() {
 		panic(fmt.Errorf("flag 'src-path' should be required: %w", err))
 	}
 
-	backupCmd.Flags().StringVar(&destPath, "dest-path", "", "destination path of the written backup (default '~/.ksync/backups)'")
+	backupCmd.Flags().StringVar(&destPath, "dest-path", "", "destination path of the written backup (default '~/.supervysor/backups)'")
 
 	backupCmd.Flags().StringVar(&compressionType, "compression", "", "compression type to compress backup directory ['tar.gz', 'zip', '']")
 
@@ -45,8 +45,6 @@ var backupCmd = &cobra.Command{
 			logger.Error("failed to load tendermint config", "err", err)
 			return
 		}
-
-		logger.Info("here")
 
 		// Load block store
 		blockStoreDB, blockStore, err := store.GetBlockstoreDBs(config)
