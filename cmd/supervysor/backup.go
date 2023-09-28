@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"path/filepath"
+
+	"github.com/KYVENetwork/supervysor/store"
 
 	"github.com/KYVENetwork/supervysor/backup"
 	"github.com/KYVENetwork/supervysor/cmd/supervysor/helpers"
@@ -12,16 +15,15 @@ var (
 	compressionType string
 	destPath        string
 	maxBackups      int
-	srcPath         string
 )
 
 func init() {
-	backupCmd.Flags().StringVar(&srcPath, "src-path", "", "source path of the directory to backup")
-	if err := backupCmd.MarkFlagRequired("src-path"); err != nil {
+	backupCmd.Flags().StringVar(&home, "home", "", "path to home directory (e.g. /root/.osmosisd)")
+	if err := backupCmd.MarkFlagRequired("home"); err != nil {
 		panic(fmt.Errorf("flag 'src-path' should be required: %w", err))
 	}
 
-	backupCmd.Flags().StringVar(&destPath, "dest-path", "", "destination path of the written backup (default '~/.ksync/backups)'")
+	backupCmd.Flags().StringVar(&destPath, "dest-path", "", "destination path of the written backup (default '~/.supervysor/backups)'")
 
 	backupCmd.Flags().StringVar(&compressionType, "compression", "", "compression type to compress backup directory ['tar.gz', 'zip', '']")
 
@@ -38,13 +40,32 @@ var backupCmd = &cobra.Command{
 			return
 		}
 
+		config, err := helpers.LoadConfig(home)
+		if err != nil {
+			logger.Error("failed to load tendermint config", "err", err)
+			return
+		}
+
+		// Load block store
+		blockStoreDB, blockStore, err := store.GetBlockstoreDBs(config)
+		if err != nil {
+			logger.Error("failed to get blockstore dbs")
+			return
+		}
+		defer blockStoreDB.Close()
+
 		if destPath == "" {
-			d, err := helpers.CreateDestPath(backupDir)
+			logger.Info("height", "h", blockStore.Height())
+			d, err := helpers.CreateDestPath(backupDir, blockStore.Height())
 			if err != nil {
+				logger.Error("could not create destination path", "err", err)
 				return
 			}
 			destPath = d
 		}
+
+		// Only backup data directory
+		srcPath := filepath.Join(home, "data")
 
 		if err := helpers.ValidatePaths(srcPath, destPath); err != nil {
 			return

@@ -136,7 +136,7 @@ func (e *Executor) PruneBlocks(homePath string, pruneHeight int, flags []string)
 }
 
 func (e *Executor) GetHeight() (int, error) {
-	return node.GetNodeHeight(e.Logger, &e.Process, e.Cfg.ABCIEndpoint, 0)
+	return node.GetNodeHeight(e.Logger, &e.Process, e.Cfg.ABCIEndpoint)
 }
 
 func (e *Executor) Shutdown() error {

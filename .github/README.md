@@ -45,10 +45,6 @@ These values ensure that
 
 Aside from the optimized syncing process, pruning already validated data is the second role of the supervysor to fulfill its goal of reducing disk storage requirements. Therefore, a custom pruning method is used, which relies on the provided Tendermint functionality of pruning all blocks until a specified height. In the context of the supervysor, this until-height should always be lower than the latest validated height of the KYVE data pool to ensure no data is pruned that needs validation. Unfortunately, the node has to be stopped to execute the pruning process, while a pruning-interval needs specification in hours. During this interval, the supervysor halts the current node process, prunes all validated blocks, and restarts the node. Due to the required time to connect with peers and to prevent the pool from catching up with the node, the pruning process is only initiated if the node is in GhostMode. If the node is in NormalMode, even if the interval reaches the pruning threshold, pruning will be enabled immediately after the node enters GhostMode. Additionally, it is recommended to set the pruning-interval to a value of at least six hours to ensure there is enough time to find peers before the pool catches up.
 
-This ensures that
-* only the required blocks for the next 2 days are kept locally, everything else will be pruned,
-* because `min_retain_blocks > height_difference_max`, nothing will be pruned before it was validated in the data pool.
-
 ## Requirements
 
 The supervysor manages the process of the data source node. First of all, it should be ensured that this node can run successfully, which can be tested by trying to sync the first `n` blocks. In addition, to successfully participate in a KYVE data pool, it is necessary to create a protocol validator and join a data pool. Further information can be found here: https://docs.kyve.network/validators/protocol_nodes/overview
@@ -99,9 +95,9 @@ To use the supervysor, you first need to initialize it:
 
 ```bash
 supervysor init
---binary-path         string   'path to chain binaries (e.g. ~/go/bin/osmosisd)'
+--binary              string   'path to chain binaries (e.g. ~/go/bin/osmosisd)'
 --chain-id            string   'KYVE chain-id'
---home-path           string   'path to home directory (e.g. ~/.osmosisd)'
+--home                string   'path to home directory (e.g. ~/.osmosisd)'
 --metrics             string   'exposing Prometheus metrics ("true" or "false")'
 --pool-id             int      'KYVE pool-id'
 --seeds               string   'seeds for the node to connect'
@@ -136,9 +132,9 @@ With your node being able to run using Cosmovisor, you can stop the process and 
 
 ```bash
 supervysor init \
---binary-path '/root/go/bin/cosmovisor' \
+--binary '/root/go/bin/cosmovisor' \
 --chain-id 'kyve-1' \
---home-path '/root/.osmosisd' \
+--home '/root/.osmosisd' \
 --pool-id 1 \
 --seeds '6bcdbcfd5d2c6ba58460f10dbcfde58278212833@osmosis.artifact-staking.io:26656,ade4d8bc8cbe014af6ebdf3cb7b1e9ad36f412c0@seeds.polkachu.com:12556'
 ```

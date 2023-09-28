@@ -15,3 +15,7 @@ var (
 		"https://api-us-1.kyve.network",
 	}
 )
+
+const (
+	BackoffMaxRetries = 15
+)

@@ -10,16 +10,17 @@ type SupervysorConfig struct {
 	ABCIEndpoint        string
 	BinaryPath          string
 	ChainId             string
-	HomePath            string
-	PoolId              int
-	Seeds               string
 	FallbackEndpoints   string
-	PruningInterval     int
-	StateRequests       bool
-	Interval            int
 	HeightDifferenceMax int
 	HeightDifferenceMin int
+	HomePath            string
+	Interval            int
 	Metrics             bool
+	MetricsPort         int
+	PoolId              int
+	PruningInterval     int
+	Seeds               string
+	StateRequests       bool
 }
 
 type Config = tmCfg.Config
