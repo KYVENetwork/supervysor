@@ -36,7 +36,7 @@ var startCmd = &cobra.Command{
 
 		if metrics {
 			go func() {
-				err := helpers.StartMetricsServer(reg, metricsPort)
+				err := helpers.StartMetricsServer(reg, config.MetricsPort)
 				if err != nil {
 					panic(err)
 				}
