@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"cosmossdk.io/log"
 )
@@ -132,4 +133,35 @@ func MoveAddressBook(activateGhostMode bool, addrBookPath string, log log.Logger
 	}
 
 	return nil
+}
+
+func SplitArgs(argsString string) []string {
+	// Split the string by spaces
+	split := strings.Fields(argsString)
+
+	var args []string
+	var currentArg string
+
+	for _, part := range split {
+		// If the current part starts with "--" or "-", consider it as a new argument
+		if strings.HasPrefix(part, "--") || strings.HasPrefix(part, "-") {
+			// If there was a previous argument, add it to the result
+			if currentArg != "" {
+				args = append(args, currentArg)
+			}
+
+			// Start a new argument
+			currentArg = part
+		} else {
+			// If the current part doesn't start with "--" or "-", append it to the current argument
+			currentArg += " " + part
+		}
+	}
+
+	// Add the last argument to the result
+	if currentArg != "" {
+		args = append(args, currentArg)
+	}
+
+	return args
 }

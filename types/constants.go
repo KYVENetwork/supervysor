@@ -18,4 +18,13 @@ var (
 
 const (
 	BackoffMaxRetries = 15
+	SegmentKey        = "oLhjq9j6pOrIB7TjNHxWWB1ILhK5Fwn6"
+)
+
+const (
+	BACKUP  = "BACKUP"
+	INIT    = "INIT"
+	PRUNE   = "PRUNE"
+	START   = "START"
+	VERSION = "VERSION"
 )

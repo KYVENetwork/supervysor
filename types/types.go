@@ -20,6 +20,7 @@ type SupervysorConfig struct {
 	PoolId              int
 	PruningInterval     int
 	Seeds               string
+	StatePruning        bool
 	StateRequests       bool
 }
 

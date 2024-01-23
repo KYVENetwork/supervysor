@@ -1,8 +1,39 @@
+![banner](../assets/banner.png)
+
+<p align="center">
+<strong>Run your KYVE Protocol node as efficient as possible</strong>
+</p>
+
 <div align="center">
-  <h1>@supervysor</h1>
+  <img alt="License: Apache-2.0" src="https://badgen.net/github/license/KYVENetwork/ksync?color=green" />
+
+  <img alt="License: Apache-2.0" src="https://badgen.net/github/stars/KYVENetwork/ksync?color=green" />
+
+  <img alt="License: Apache-2.0" src="https://badgen.net/github/contributors/KYVENetwork/ksync?color=green" />
+
+  <img alt="License: Apache-2.0" src="https://badgen.net/github/releases/KYVENetwork/ksync?color=green" />
 </div>
 
-![banner](../assets/banner.png)
+<div align="center">
+  <a href="https://twitter.com/KYVENetwork" target="_blank">
+    <img alt="Twitter" src="https://badgen.net/badge/icon/twitter?icon=twitter&label" />
+  </a>
+  <a href="https://discord.com/invite/kyve" target="_blank">
+    <img alt="Discord" src="https://badgen.net/badge/icon/discord?icon=discord&label" />
+  </a>
+  <a href="https://t.me/kyvenet" target="_blank">
+    <img alt="Telegram" src="https://badgen.net/badge/icon/telegram?icon=telegram&label" />
+  </a>
+</div>
+
+<br/>
+
+> [!IMPORTANT]
+> In this README you will find information on contribution guidelines and
+> detailed documentation about the low level implementation of the supervysor.
+>
+> You can find the complete documentation on installation and usage
+> here: **[https://docs.kyve.network/tools/supervysor/overview](https://docs.kyve.network/ksync)**
 
 ## Content
 
@@ -15,7 +46,7 @@
 
 ## What is the supervysor?
 
-Participating in a KYVE data pool such as Cosmoshub or Osmosis requires running two nodes: the KYVE protocol node and the data source node (e.g., full node of Cosmoshub, Osmosis, etc.). However, running these full nodes in parallel can result in high storage requirements (approximately 10TB for Osmosis), leading to increased operational costs and inefficient resource utilization. This inefficiency arises because the node begins synchronizing from the start, even though it only requires storage for a certain range of blocks. Additionally, the node lacks information about the progress of the KYVE pool and the already validated data, making pruning impractical when running a node as a KYVE data source.
+Participating in a KYVE data pool such as CosmosHub or Osmosis requires running two nodes: the KYVE protocol node and the data source node (e.g., full node of CosmosHub, Osmosis, etc.). However, running these full nodes in parallel can result in high storage requirements (approximately >10TB for Osmosis), leading to increased operational costs and inefficient resource utilization. This inefficiency arises because the node begins synchronizing from the start, even though it only requires storage for a certain range of blocks. Additionally, the node lacks information about the progress of the KYVE pool and the already validated data, making pruning impractical when running a node as a KYVE data source.
 
 However, if the synchronization process is halted, the node cannot fulfill its responsibilities as data source effectively. To overcome this challenge, the supervysor is introduced as a solution. The supervysor manages the data source node process based on the requirements of a KYVE data pool. It ensures that the node synchronizes only up to the necessary extent and continues to provide data even when the synchronization process is paused.
 
@@ -64,12 +95,6 @@ To install a previous version, you can specify the version:
 go install github.com/KYVENetwork/supervysor/cmd/supervysor@v0.1.0
 ```
 
-_Optional:_ If you have issues to successfully run the `go install` command, make sure to export the following to your environment:
-
-```bash
-env GIT_TERMINAL_PROMPT=1
-```
-
 Run `supervysor version` to check the installed version.
 
 You can also install from source by pulling the supervysor repository and switching to the correct version and building
@@ -79,7 +104,7 @@ as follows:
 git clone git@github.com:KYVENetwork/supervysor.git
 cd supervysor
 git checkout tags/vx.x.x -b vx.x.x
-make supervysor
+make
 ```
 
 This will build supervysor in `/build` directory. Afterwards you may want to put it into your machine's PATH like
@@ -133,8 +158,6 @@ With your node being able to run using Cosmovisor, you can stop the process and 
 ```bash
 supervysor init \
 --binary '/root/go/bin/cosmovisor' \
---chain-id 'kyve-1' \
---home '/root/.osmosisd' \
 --pool-id 1 \
 --seeds '6bcdbcfd5d2c6ba58460f10dbcfde58278212833@osmosis.artifact-staking.io:26656,ade4d8bc8cbe014af6ebdf3cb7b1e9ad36f412c0@seeds.polkachu.com:12556'
 ```
