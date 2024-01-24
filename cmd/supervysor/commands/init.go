@@ -28,7 +28,7 @@ func init() {
 
 	initCmd.Flags().StringVar(&home, "home", "", "path to home directory (e.g. /root/.osmosisd)")
 
-	initCmd.Flags().StringVar(&config, "config", "", "path to config directory (default: ~/.supervysor/")
+	initCmd.Flags().StringVar(&config, "config", "", "path to config directory (default: ~/.supervysor/)")
 
 	initCmd.Flags().IntVar(&poolId, "pool-id", 0, "KYVE pool-id")
 	if err := initCmd.MarkFlagRequired("pool-id"); err != nil {

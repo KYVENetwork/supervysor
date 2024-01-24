@@ -20,7 +20,7 @@ import (
 func init() {
 	startCmd.Flags().StringVar(&cfgFlag, "config", "", "path to config directory (e.g. ~/.supervysor/)")
 
-	startCmd.Flags().StringVar(&binaryFlags, "flags", "", "start flags for the underlying binary (e.g. '--address')")
+	startCmd.Flags().StringVar(&binaryFlags, "flags", "", "flags for the underlying binary (e.g. '--address, ')")
 
 	startCmd.Flags().BoolVar(&optOut, "opt-out", false, "disable the collection of anonymous usage data")
 }
