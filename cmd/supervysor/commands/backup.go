@@ -1,20 +1,17 @@
-package main
+package commands
 
 import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/KYVENetwork/supervysor/cmd/supervysor/commands/helpers"
+
+	"github.com/KYVENetwork/supervysor/utils"
+
 	"github.com/KYVENetwork/supervysor/store"
 
 	"github.com/KYVENetwork/supervysor/backup"
-	"github.com/KYVENetwork/supervysor/cmd/supervysor/helpers"
 	"github.com/spf13/cobra"
-)
-
-var (
-	compressionType string
-	destPath        string
-	maxBackups      int
 )
 
 func init() {
@@ -28,12 +25,16 @@ func init() {
 	backupCmd.Flags().StringVar(&compressionType, "compression", "", "compression type to compress backup directory ['tar.gz', 'zip', '']")
 
 	backupCmd.Flags().IntVar(&maxBackups, "max-backups", 0, "number of kept backups (set 0 to keep all)")
+
+	backupCmd.Flags().BoolVar(&optOut, "opt-out", false, "disable the collection of anonymous usage data")
 }
 
 var backupCmd = &cobra.Command{
 	Use:   "backup",
 	Short: "Backup data directory",
 	Run: func(cmd *cobra.Command, args []string) {
+		utils.TrackBackupEvent(optOut)
+
 		backupDir, err := helpers.GetBackupDir()
 		if err != nil {
 			logger.Error("failed to get ksync home directory", "err", err)

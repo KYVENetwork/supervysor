@@ -67,7 +67,7 @@ func GetNodeHeight(log log.Logger, p *types.ProcessType, abciEndpoint string) (i
 // StartNode starts the node process in Normal Mode and returns the os.Process object representing
 // the running process. It checks if the node is being started initially or not, moves the
 // address book if necessary, and sets the appropriate command arguments based on the binaryPath.
-func StartNode(cfg *types.SupervysorConfig, log log.Logger, p *types.ProcessType, initial bool, restart bool, flags []string) (*os.Process, error) {
+func StartNode(cfg *types.SupervysorConfig, log log.Logger, p *types.ProcessType, initial bool, restart bool, flags string) (*os.Process, error) {
 	addrBookPath := filepath.Join(cfg.HomePath, "config", "addrbook.json")
 
 	if !initial {
@@ -109,7 +109,9 @@ func StartNode(cfg *types.SupervysorConfig, log log.Logger, p *types.ProcessType
 			return nil, fmt.Errorf("empty home path in config")
 		}
 
-		args = append(args, flags...)
+		parsedFlags := helpers.SplitArgs(flags)
+
+		args = append(args, parsedFlags...)
 
 		cmd := exec.Command(cmdPath, args...)
 		cmd.Stdout = os.Stdout
@@ -154,7 +156,7 @@ func StartNode(cfg *types.SupervysorConfig, log log.Logger, p *types.ProcessType
 // representing the running process. It moves the address book, checks if the node is already running
 // or in Ghost Mode ands sets the appropriate command arguments based on the binaryPath.
 // It starts the node without seeds and with a changed laddr, so the node can't continue syncing.
-func StartGhostNode(cfg *types.SupervysorConfig, log log.Logger, p *types.ProcessType, restart bool, flags []string) (*os.Process, error) {
+func StartGhostNode(cfg *types.SupervysorConfig, log log.Logger, p *types.ProcessType, restart bool, flags string) (*os.Process, error) {
 	addrBookPath := filepath.Join(cfg.HomePath, "config", "addrbook.json")
 
 	if err := helpers.MoveAddressBook(true, addrBookPath, log); err != nil {
@@ -196,7 +198,9 @@ func StartGhostNode(cfg *types.SupervysorConfig, log log.Logger, p *types.Proces
 			args = append(args, "--home", cfg.HomePath)
 		}
 
-		args = append(args, flags...)
+		parsedFlags := helpers.SplitArgs(flags)
+
+		args = append(args, parsedFlags...)
 
 		cmd := exec.Command(cmdPath, args...)
 		cmd.Stdout = os.Stdout

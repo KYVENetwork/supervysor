@@ -23,7 +23,7 @@ func NewExecutor(logger *log.Logger, cfg *types.SupervysorConfig) *Executor {
 }
 
 // InitialStart initiates the node by starting it in the initial mode.
-func (e *Executor) InitialStart(flags []string) error {
+func (e *Executor) InitialStart(flags string) error {
 	e.Logger.Info("starting initially")
 	process, err := node.StartNode(e.Cfg, e.Logger, &e.Process, true, false, flags)
 	if err != nil {
@@ -41,7 +41,7 @@ func (e *Executor) InitialStart(flags []string) error {
 // EnableGhostMode activates the Ghost Mode by starting the node in GhostMode if it is not already enabled.
 // If not, it shuts down the node running in NormalMode, initiates the GhostMode and updates the process ID
 // and GhostMode upon success.
-func (e *Executor) EnableGhostMode(flags []string) error {
+func (e *Executor) EnableGhostMode(flags string) error {
 	if !e.Process.GhostMode {
 		if err := node.ShutdownNode(&e.Process); err != nil {
 			e.Logger.Error("could not shutdown node", "err", err)
@@ -69,7 +69,7 @@ func (e *Executor) EnableGhostMode(flags []string) error {
 // EnableNormalMode enables the Normal Mode by starting the node in NormalMode if it is not already enabled.
 // If the GhostMode is active, it shuts down the node, starts the NormalMode with the provided parameters
 // and updates the process ID and GhostMode upon success.
-func (e *Executor) EnableNormalMode(flags []string) error {
+func (e *Executor) EnableNormalMode(flags string) error {
 	if e.Process.GhostMode {
 		if err := node.ShutdownNode(&e.Process); err != nil {
 			e.Logger.Error("could not shutdown node", "err", err)
@@ -94,12 +94,12 @@ func (e *Executor) EnableNormalMode(flags []string) error {
 	return nil
 }
 
-func (e *Executor) PruneBlocks(homePath string, pruneHeight int, flags []string) error {
+func (e *Executor) PruneBlocks(homePath string, pruneHeight int, statePruning bool, flags string) error {
 	if err := e.Shutdown(); err != nil {
 		e.Logger.Error("could not shutdown node process", "err", err)
 		return err
 	}
-	err := store.PruneBlocks(homePath, int64(pruneHeight)-1, e.Logger)
+	err := store.Prune(homePath, int64(pruneHeight)-1, statePruning, e.Logger)
 	if err != nil {
 		e.Logger.Error("could not prune blocks, exiting")
 		return err

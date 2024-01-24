@@ -4,8 +4,12 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
+
+	"cosmossdk.io/log"
 
 	"github.com/spf13/viper"
 
@@ -14,6 +18,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	cfg "github.com/tendermint/tendermint/config"
 )
+
+var logger = log.NewLogger(os.Stdout)
 
 func CreateDestPath(backupDir string, latestHeight int64) (string, error) {
 	if err := os.Mkdir(filepath.Join(backupDir, strconv.FormatInt(latestHeight, 10)), 0o755); err != nil {
@@ -74,6 +80,45 @@ func GetBackupDir() (string, error) {
 	}
 
 	return backupDir, nil
+}
+
+func GetHomePathFromBinary(binaryPath string) string {
+	cmdPath, err := exec.LookPath(binaryPath)
+	if err != nil {
+		logger.Error(fmt.Sprintf("failed to lookup binary path: %s", err.Error()))
+		os.Exit(1)
+	}
+
+	startArgs := make([]string, 0)
+
+	// if we run with cosmovisor we start with the cosmovisor run command
+	if strings.HasSuffix(binaryPath, "cosmovisor") {
+		startArgs = append(startArgs, "run")
+	}
+
+	out, err := exec.Command(cmdPath, startArgs...).Output()
+	if err != nil {
+		logger.Error("failed to get output of binary")
+		os.Exit(1)
+	}
+
+	// here we search for a specific line in the binary output when simply
+	// executed without arguments. In the output, the default home path
+	// is printed, which is parsed and used by KSYNC
+	for _, line := range strings.Split(string(out), "\n") {
+		if strings.Contains(line, "--home") {
+			if strings.Count(line, "\"") != 2 {
+				logger.Error(fmt.Sprintf("did not found default home path in help line: %s", line))
+				os.Exit(1)
+			}
+
+			return strings.Split(line, "\"")[1]
+		}
+	}
+
+	logger.Error("did not found default home path in entire binary output")
+	os.Exit(1)
+	return ""
 }
 
 func GetSupervysorDir() (string, error) {

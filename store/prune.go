@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/KYVENetwork/supervysor/cmd/supervysor/commands/helpers"
+
 	"cosmossdk.io/log"
 
-	"github.com/KYVENetwork/supervysor/cmd/supervysor/helpers"
 	dbm "github.com/tendermint/tm-db"
 )
 
-func PruneBlocks(home string, untilHeight int64, logger log.Logger) error {
+func Prune(home string, untilHeight int64, statePruning bool, logger log.Logger) error {
 	config, err := helpers.LoadConfig(home)
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
@@ -44,7 +45,25 @@ func PruneBlocks(home string, untilHeight int64, logger log.Logger) error {
 		os.Exit(0)
 	}
 
-	logger.Info(fmt.Sprintf("Pruned %d blocks, new base height is %d", blocks, blockStore.Base()))
+	if statePruning {
+		stateStoreDB, stateStore, err := GetStateDBs(config)
+		defer func(stateStoreDB dbm.DB) {
+			err = stateStoreDB.Close()
+			if err != nil {
+				logger.Error(err.Error())
+				os.Exit(0)
+			}
+		}(stateStoreDB)
+
+		if err = stateStore.PruneStates(base, untilHeight); err != nil {
+			logger.Error(err.Error())
+			os.Exit(0)
+		}
+
+		logger.Info(fmt.Sprintf("Pruned %d blocks and the state until %d, new base height is %d", blocks, untilHeight, blockStore.Base()))
+	} else {
+		logger.Info(fmt.Sprintf("Pruned %d blocks until %d, new base height is %d", blocks, untilHeight, blockStore.Base()))
+	}
 
 	return nil
 }

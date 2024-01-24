@@ -1,7 +1,7 @@
-VERSION := v0.2.3
+VERSION := v0.3.0
 
 ldflags := $(LDFLAGS)
-ldflags += -X main.Version=$(VERSION)
+ldflags += -X main.version=$(VERSION)
 ldflags := $(strip $(ldflags))
 
 BUILD_FLAGS := -ldflags '$(ldflags)'

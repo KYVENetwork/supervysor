@@ -1,11 +1,14 @@
-package main
+package commands
 
 import (
 	"fmt"
 	"path/filepath"
 	"time"
 
-	"github.com/KYVENetwork/supervysor/cmd/supervysor/helpers"
+	"github.com/KYVENetwork/supervysor/cmd/supervysor/commands/helpers"
+
+	"github.com/KYVENetwork/supervysor/utils"
+
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/spf13/cobra"
@@ -14,21 +17,41 @@ import (
 	"github.com/KYVENetwork/supervysor/pool"
 )
 
+func init() {
+	startCmd.Flags().StringVar(&cfgFlag, "config", "", "path to config directory (e.g. ~/.supervysor/)")
+
+	startCmd.Flags().StringVar(&binaryFlags, "flags", "", "flags for the underlying binary (e.g. '--address, ')")
+
+	startCmd.Flags().BoolVar(&optOut, "opt-out", false, "disable the collection of anonymous usage data")
+}
+
 // The startCmd of the supervysor launches and manages the node process using the specified binary.
 // It periodically retrieves the heights of the node and the associated KYVE pool, and dynamically adjusts
 // the sync mode of the node based on these heights.
 var startCmd = &cobra.Command{
-	Use:                "start",
-	Short:              "Start a supervysed Tendermint node",
-	DisableFlagParsing: true,
-	RunE: func(cmd *cobra.Command, flags []string) error {
+	Use:   "start",
+	Short: "Start a supervysed Tendermint node",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if cfgFlag == "" {
+			configPath, err = helpers.GetSupervysorDir()
+			if err != nil {
+				logger.Error("could not get supervysor directory path", "err", err)
+				return err
+			}
+		} else {
+			configPath = cfgFlag
+		}
+
 		// Load initialized config.
-		config, err := getSupervysorConfig()
+		supervysorConfig, err := getSupervysorConfig(configPath)
 		if err != nil {
 			logger.Error("could not load config", "err", err)
 			return err
 		}
-		metrics := config.Metrics
+
+		utils.TrackStartEvent(supervysorConfig.ChainId, optOut)
+
+		metrics := supervysorConfig.Metrics
 
 		// Create Prometheus registry
 		reg := prometheus.NewRegistry()
@@ -36,17 +59,17 @@ var startCmd = &cobra.Command{
 
 		if metrics {
 			go func() {
-				err := helpers.StartMetricsServer(reg, config.MetricsPort)
+				err := helpers.StartMetricsServer(reg, supervysorConfig.MetricsPort)
 				if err != nil {
 					panic(err)
 				}
 			}()
 		}
 
-		e := executor.NewExecutor(&logger, config)
+		e := executor.NewExecutor(&logger, supervysorConfig)
 
 		// Start data source node initially.
-		if err := e.InitialStart(flags); err != nil {
+		if err := e.InitialStart(binaryFlags); err != nil {
 			logger.Error("initial start failed", "err", err)
 			return err
 		}
@@ -56,7 +79,7 @@ var startCmd = &cobra.Command{
 		if metrics {
 			go func() {
 				for {
-					dbSize, err := helpers.GetDirectorySize(filepath.Join(config.HomePath, "data"))
+					dbSize, err := helpers.GetDirectorySize(filepath.Join(supervysorConfig.HomePath, "data"))
 					if err != nil {
 						logger.Error("could not get data directory size; will not expose metrics", "err", err)
 					} else {
@@ -83,7 +106,7 @@ var startCmd = &cobra.Command{
 				m.NodeHeight.Set(float64(nodeHeight))
 			}
 
-			poolHeight, err := pool.GetPoolHeight(config.ChainId, config.PoolId, config.FallbackEndpoints)
+			poolHeight, err := pool.GetPoolHeight(supervysorConfig.ChainId, supervysorConfig.PoolId, supervysorConfig.FallbackEndpoints)
 			if err != nil {
 				logger.Error("could not get pool height", "err", err)
 				if shutdownErr := e.Shutdown(); shutdownErr != nil {
@@ -95,11 +118,11 @@ var startCmd = &cobra.Command{
 				m.PoolHeight.Set(float64(poolHeight))
 			}
 
-			logger.Info("fetched heights successfully", "node", nodeHeight, "pool", poolHeight, "max-height", poolHeight+config.HeightDifferenceMax, "min-height", poolHeight+config.HeightDifferenceMin)
+			logger.Info("fetched heights successfully", "node", nodeHeight, "pool", poolHeight, "max-height", poolHeight+supervysorConfig.HeightDifferenceMax, "min-height", poolHeight+supervysorConfig.HeightDifferenceMin)
 
-			if config.PruningInterval != 0 {
-				logger.Info("current pruning count", "pruning-count", fmt.Sprintf("%.2f", pruningCount), "pruning-threshold", config.PruningInterval)
-				if pruningCount > float64(config.PruningInterval) && nodeHeight > 0 {
+			if supervysorConfig.PruningInterval != 0 {
+				logger.Info("current pruning count", "pruning-count", fmt.Sprintf("%.2f", pruningCount), "pruning-threshold", supervysorConfig.PruningInterval)
+				if pruningCount > float64(supervysorConfig.PruningInterval) && nodeHeight > 0 {
 					if currentMode == "ghost" {
 						pruneHeight := poolHeight
 						if nodeHeight < poolHeight {
@@ -107,7 +130,7 @@ var startCmd = &cobra.Command{
 						}
 						logger.Info("pruning blocks after node shutdown", "until-height", pruneHeight)
 
-						err = e.PruneBlocks(config.HomePath, pruneHeight-1, flags)
+						err = e.PruneBlocks(supervysorConfig.HomePath, pruneHeight-1, supervysorConfig.StatePruning, binaryFlags)
 						if err != nil {
 							logger.Error("could not prune blocks", "err", err)
 							return err
@@ -116,7 +139,7 @@ var startCmd = &cobra.Command{
 						if nodeHeight < poolHeight {
 							logger.Info("pruning blocks after node shutdown", "until-height", nodeHeight)
 
-							err = e.PruneBlocks(config.HomePath, nodeHeight-1, flags)
+							err = e.PruneBlocks(supervysorConfig.HomePath, nodeHeight-1, supervysorConfig.StatePruning, binaryFlags)
 							if err != nil {
 								logger.Error("could not prune blocks", "err", err)
 								return err
@@ -131,18 +154,18 @@ var startCmd = &cobra.Command{
 			heightDiff := nodeHeight - poolHeight
 
 			if metrics {
-				m.MaxHeight.Set(float64(poolHeight + config.HeightDifferenceMax))
-				m.MinHeight.Set(float64(poolHeight + config.HeightDifferenceMin))
+				m.MaxHeight.Set(float64(poolHeight + supervysorConfig.HeightDifferenceMax))
+				m.MinHeight.Set(float64(poolHeight + supervysorConfig.HeightDifferenceMin))
 			}
 
-			if heightDiff >= config.HeightDifferenceMax {
+			if heightDiff >= supervysorConfig.HeightDifferenceMax {
 				if currentMode != "ghost" {
 					logger.Info("enabling GhostMode")
 				} else {
 					logger.Info("keeping GhostMode")
 				}
 				// Data source node has synced far enough, enable or keep Ghost Mode
-				if err = e.EnableGhostMode(flags); err != nil {
+				if err = e.EnableGhostMode(binaryFlags); err != nil {
 					logger.Error("could not enable Ghost Mode", "err", err)
 
 					if shutdownErr := e.Shutdown(); shutdownErr != nil {
@@ -151,7 +174,7 @@ var startCmd = &cobra.Command{
 					return err
 				}
 				currentMode = "ghost"
-			} else if heightDiff < config.HeightDifferenceMax && heightDiff > config.HeightDifferenceMin {
+			} else if heightDiff < supervysorConfig.HeightDifferenceMax && heightDiff > supervysorConfig.HeightDifferenceMin {
 				// No threshold reached, keep current mode
 				logger.Info("keeping current Mode", "mode", currentMode, "height-difference", heightDiff)
 			} else {
@@ -161,7 +184,7 @@ var startCmd = &cobra.Command{
 					logger.Info("keeping NormalMode")
 				}
 				// Difference is < HeightDifferenceMin, Data source needs to catch up, enable or keep Normal Mode
-				if err = e.EnableNormalMode(flags); err != nil {
+				if err = e.EnableNormalMode(binaryFlags); err != nil {
 					logger.Error("could not enable Normal Mode", "err", err)
 
 					if shutdownErr := e.Shutdown(); shutdownErr != nil {
@@ -176,8 +199,8 @@ var startCmd = &cobra.Command{
 					logger.Info("node has not reached pool height yet, can not use it as data source")
 				}
 			}
-			pruningCount = pruningCount + float64(config.Interval)/60/60
-			time.Sleep(time.Second * time.Duration(config.Interval))
+			pruningCount = pruningCount + float64(supervysorConfig.Interval)/60/60
+			time.Sleep(time.Second * time.Duration(supervysorConfig.Interval))
 		}
 	},
 }
