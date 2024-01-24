@@ -20,7 +20,7 @@ func init() {
 		panic(fmt.Errorf("flag 'until-height' should be required: %w", err))
 	}
 
-	pruneCmd.Flags().BoolVar(&statePruning, "state-pruning", true, "state pruning enabled")
+	pruneCmd.Flags().BoolVar(&statePruning, "state-pruning", true, "enable state pruning")
 
 	pruneCmd.Flags().BoolVar(&optOut, "opt-out", false, "disable the collection of anonymous usage data")
 }
