@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"github.com/KYVENetwork/supervysor/types"
 	"github.com/KYVENetwork/supervysor/utils"
 	"github.com/spf13/cobra"
 )
@@ -15,6 +16,6 @@ var versionCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		utils.TrackVersionEvent(optOut)
 
-		logger.Info(Version)
+		logger.Info(types.Version)
 	},
 }

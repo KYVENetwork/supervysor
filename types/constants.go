@@ -12,6 +12,8 @@ var (
 	}
 )
 
+var Version string
+
 const (
 	BackoffMaxRetries = 15
 	SegmentKey        = "oLhjq9j6pOrIB7TjNHxWWB1ILhK5Fwn6"

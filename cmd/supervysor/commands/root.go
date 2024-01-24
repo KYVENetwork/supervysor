@@ -45,12 +45,10 @@ var (
 
 var logger = log.NewLogger(os.Stdout)
 
-var Version = ""
-
 var supervysor = &cobra.Command{
 	Use:     "supervysor",
 	Short:   "Supervysor helps sync a Tendermint node used as a KYVE data source.",
-	Version: Version,
+	Version: types.Version,
 }
 
 func Execute() {
