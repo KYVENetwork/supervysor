@@ -20,6 +20,8 @@ import (
 func init() {
 	startCmd.Flags().StringVar(&cfgFlag, "config", "", "path to config directory (e.g. ~/.supervysor/)")
 
+	startCmd.Flags().BoolVar(&statePruning, "state-pruning", true, "enable state pruning")
+
 	startCmd.Flags().StringVar(&binaryFlags, "flags", "", "flags for the underlying binary (e.g. '--address, ')")
 
 	startCmd.Flags().BoolVar(&optOut, "opt-out", false, "disable the collection of anonymous usage data")
@@ -130,7 +132,7 @@ var startCmd = &cobra.Command{
 						}
 						logger.Info("pruning blocks after node shutdown", "until-height", pruneHeight)
 
-						err = e.PruneBlocks(supervysorConfig.HomePath, pruneHeight-1, supervysorConfig.StatePruning, binaryFlags)
+						err = e.PruneData(supervysorConfig.HomePath, pruneHeight-1, supervysorConfig.StatePruning, binaryFlags)
 						if err != nil {
 							logger.Error("could not prune blocks", "err", err)
 							return err
@@ -139,7 +141,7 @@ var startCmd = &cobra.Command{
 						if nodeHeight < poolHeight {
 							logger.Info("pruning blocks after node shutdown", "until-height", nodeHeight)
 
-							err = e.PruneBlocks(supervysorConfig.HomePath, nodeHeight-1, supervysorConfig.StatePruning, binaryFlags)
+							err = e.PruneData(supervysorConfig.HomePath, nodeHeight-1, supervysorConfig.StatePruning, binaryFlags)
 							if err != nil {
 								logger.Error("could not prune blocks", "err", err)
 								return err

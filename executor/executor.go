@@ -94,7 +94,7 @@ func (e *Executor) EnableNormalMode(flags string) error {
 	return nil
 }
 
-func (e *Executor) PruneBlocks(homePath string, pruneHeight int, statePruning bool, flags string) error {
+func (e *Executor) PruneData(homePath string, pruneHeight int, statePruning bool, flags string) error {
 	if err := e.Shutdown(); err != nil {
 		e.Logger.Error("could not shutdown node process", "err", err)
 		return err
