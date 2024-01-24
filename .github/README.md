@@ -33,7 +33,7 @@
 > detailed documentation about the low level implementation of the supervysor.
 >
 > You can find the complete documentation on installation and usage
-> here: **[https://docs.kyve.network/tools/supervysor/overview](https://docs.kyve.network/tools/supervysor/overview)**
+> here: **[https://docs.kyve.network/tools/supervysor](https://docs.kyve.network/tools/supervysor)**
 > 
 # Build from Source
 
