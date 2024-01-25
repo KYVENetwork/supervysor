@@ -13,28 +13,33 @@ import (
 
 // GetPoolHeight retrieves the KYVE pool height by using a list of endpoints (& optionally fallback endpoints)
 // based on the provided chain and pool ID.
-func GetPoolHeight(chainId string, poolId int, fallbackEndpoints string) (int, error) {
+func GetPoolHeight(chainId string, poolId int, poolEndpoints string) (int, error) {
 	var endpoints []string
-	var err error
 
-	if chainId == "korellia" {
-		endpoints = types.KorelliaEndpoints
-	} else if chainId == "kaon-1" {
-		endpoints = types.KaonEndpoints
-	} else if chainId == "kyve-1" {
-		endpoints = types.MainnetEndpoints
+	if poolEndpoints != "" {
+		endpoints = strings.Split(poolEndpoints, ",")
 	} else {
-		return 0, fmt.Errorf("unknown chainId")
-	}
-
-	for _, endpoint := range append(endpoints, strings.Split(fallbackEndpoints, ",")...) {
-		if endpoint != "" {
-			if height, err := requestPoolHeight(poolId, endpoint); err == nil {
-				return height, err
-			}
+		if chainId == "korellia-2" {
+			endpoints = types.KorelliaEndpoints
+		} else if chainId == "kaon-1" {
+			endpoints = types.KaonEndpoints
+		} else if chainId == "kyve-1" {
+			endpoints = types.MainnetEndpoints
+		} else {
+			return 0, fmt.Errorf("unknown chainId")
 		}
 	}
-	return 0, err
+
+	for _, endpoint := range endpoints {
+		height, err := requestPoolHeight(poolId, endpoint)
+		if err == nil {
+			return height, nil
+		} else {
+			fmt.Printf("failed to request pool height from %v: %v", endpoint, err)
+		}
+	}
+
+	return 0, fmt.Errorf("failed to get pool height from all endpoints")
 }
 
 // requestPoolHeight retrieves KYVE pool height by making an GET request to the given endpoint.

@@ -44,7 +44,7 @@ func init() {
 
 	initCmd.Flags().BoolVar(&optOut, "opt-out", false, "disable the collection of anonymous usage data")
 
-	initCmd.Flags().StringVar(&fallbackEndpoints, "fallback-endpoints", "", "additional endpoints to query KYVE pool height")
+	initCmd.Flags().StringVar(&poolEndpoints, "endpoints", "", "overwrite endpoints to query KYVE pool height")
 
 	initCmd.Flags().IntVar(&pruningInterval, "pruning-interval", 24, "block-pruning interval (hours)")
 
@@ -78,7 +78,7 @@ var initCmd = &cobra.Command{
 
 		utils.TrackInitEvent(chainId, optOut)
 
-		if err := settings.InitializeSettings(binary, home, poolId, false, seeds, chainId, fallbackEndpoints); err != nil {
+		if err := settings.InitializeSettings(binary, home, poolId, false, seeds, chainId, poolEndpoints); err != nil {
 			logger.Error("could not initialize settings", "err", err)
 			return err
 		}
@@ -110,13 +110,13 @@ var initCmd = &cobra.Command{
 				ABCIEndpoint:        abciEndpoint,
 				BinaryPath:          binary,
 				ChainId:             chainId,
-				FallbackEndpoints:   fallbackEndpoints,
 				HeightDifferenceMax: settings.Settings.MaxDifference,
 				HeightDifferenceMin: settings.Settings.MaxDifference / 2,
 				HomePath:            home,
 				Interval:            10,
 				Metrics:             metrics,
 				MetricsPort:         metricsPort,
+				PoolEndpoints:       poolEndpoints,
 				PoolId:              poolId,
 				PruningInterval:     pruningInterval,
 				Seeds:               seeds,
