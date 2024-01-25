@@ -61,7 +61,7 @@ var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize supervysor",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		supportedChains := []string{"kyve-1", "kaon-1", "korellia", "korellia-2"}
+		supportedChains := []string{"kyve-1", "kaon-1", "korellia-2"}
 		if !slices.Contains(supportedChains, chainId) {
 			logger.Error("specified chain-id is not supported", "chain-id", chainId)
 			return fmt.Errorf("not supported chain-id")
