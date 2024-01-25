@@ -108,7 +108,7 @@ var startCmd = &cobra.Command{
 				m.NodeHeight.Set(float64(nodeHeight))
 			}
 
-			poolHeight, err := pool.GetPoolHeight(supervysorConfig.ChainId, supervysorConfig.PoolId, supervysorConfig.FallbackEndpoints)
+			poolHeight, err := pool.GetPoolHeight(supervysorConfig.ChainId, supervysorConfig.PoolId, supervysorConfig.PoolEndpoints)
 			if err != nil {
 				logger.Error("could not get pool height", "err", err)
 				if shutdownErr := e.Shutdown(); shutdownErr != nil {

@@ -16,22 +16,22 @@ import (
 )
 
 var (
-	abciEndpoint      string
-	binary            string
-	binaryFlags       string
-	cfgFlag           string
-	chainId           string
-	config            string
-	fallbackEndpoints string
-	home              string
-	metrics           bool
-	metricsPort       int
-	optOut            bool
-	poolId            int
-	pruningInterval   int
-	seeds             string
-	statePruning      bool
-	untilHeight       int64
+	abciEndpoint    string
+	binary          string
+	binaryFlags     string
+	cfgFlag         string
+	chainId         string
+	config          string
+	home            string
+	metrics         bool
+	metricsPort     int
+	optOut          bool
+	poolEndpoints   string
+	poolId          int
+	pruningInterval int
+	seeds           string
+	statePruning    bool
+	untilHeight     int64
 
 	cfg types.SupervysorConfig
 

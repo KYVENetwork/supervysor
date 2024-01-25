@@ -56,29 +56,33 @@ func CalculateMaxDifference(maxBundleSize int, uploadInterval int) int {
 
 // GetPoolSettings retrieves KYVE pool settings by using a list of endpoints (& optionally fallback endpoints)
 // based on the provided chain and pool ID.
-func GetPoolSettings(poolId int, chainId string, fallbackEndpoints string) ([2]int, error) {
+func GetPoolSettings(poolId int, chainId string, poolEndpoints string) ([2]int, error) {
 	var endpoints []string
-	var err error
 
-	if chainId == "korellia" {
-		endpoints = types.KorelliaEndpoints
-	} else if chainId == "kaon-1" {
-		endpoints = types.KaonEndpoints
-	} else if chainId == "kyve-1" {
-		endpoints = types.MainnetEndpoints
+	if poolEndpoints != "" {
+		endpoints = strings.Split(poolEndpoints, ",")
 	} else {
-		return [2]int{}, fmt.Errorf("unknown chainId")
-	}
-
-	for _, endpoint := range append(endpoints, strings.Split(fallbackEndpoints, ",")...) {
-		if endpoint != "" {
-			if height, err := requestPoolSettings(poolId, endpoint); err == nil {
-				return height, err
-			}
+		if chainId == "korellia-2" {
+			endpoints = types.KorelliaEndpoints
+		} else if chainId == "kaon-1" {
+			endpoints = types.KaonEndpoints
+		} else if chainId == "kyve-1" {
+			endpoints = types.MainnetEndpoints
+		} else {
+			return [2]int{}, fmt.Errorf("unknown chainId")
 		}
 	}
 
-	return [2]int{}, err
+	for _, endpoint := range endpoints {
+		height, err := requestPoolSettings(poolId, endpoint)
+		if err == nil {
+			return height, err
+		} else {
+			fmt.Printf("failed to request pool settings from %v: %v", endpoint, err)
+		}
+	}
+
+	return [2]int{}, fmt.Errorf("failed to get pool settings from all endpoints")
 }
 
 // SetPruningSettings updates the pruning settings in the app.toml file of the given home directory.
@@ -142,8 +146,6 @@ func SetPruningSettings(homePath string, stateRequests bool, keepRecent int, int
 // It reads the response, extracts the relevant settings information and returns it.
 func requestPoolSettings(poolId int, endpoint string) ([2]int, error) {
 	poolEndpoint := endpoint + "/kyve/query/v1beta1/pool/" + strconv.FormatInt(int64(poolId), 10)
-
-	fmt.Println(poolEndpoint)
 
 	response, err := http.Get(poolEndpoint)
 	if err != nil {

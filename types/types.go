@@ -10,13 +10,13 @@ type SupervysorConfig struct {
 	ABCIEndpoint        string
 	BinaryPath          string
 	ChainId             string
-	FallbackEndpoints   string
 	HeightDifferenceMax int
 	HeightDifferenceMin int
 	HomePath            string
 	Interval            int
 	Metrics             bool
 	MetricsPort         int
+	PoolEndpoints       string
 	PoolId              int
 	PruningInterval     int
 	Seeds               string
