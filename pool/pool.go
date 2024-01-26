@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/KYVENetwork/supervysor/types"
 )
@@ -30,12 +32,21 @@ func GetPoolHeight(chainId string, poolId int, poolEndpoints string) (int, error
 		}
 	}
 
-	for _, endpoint := range endpoints {
-		height, err := requestPoolHeight(poolId, endpoint)
-		if err == nil {
-			return height, nil
-		} else {
-			fmt.Printf("failed to request pool height from %v: %v", endpoint, err)
+	for i := 0; i <= types.BackoffMaxRetries; i++ {
+		delay := time.Duration(math.Pow(2, float64(i))) * time.Second
+
+		for _, endpoint := range endpoints {
+			height, err := requestPoolHeight(poolId, endpoint)
+			if err == nil {
+				return height, nil
+			} else {
+				fmt.Printf("failed to request pool height from %v: %v\n", endpoint, err)
+			}
+		}
+
+		if i <= types.BackoffMaxRetries {
+			fmt.Printf("retrying to query pool again in %v\n", delay)
+			time.Sleep(delay)
 		}
 	}
 
