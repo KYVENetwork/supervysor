@@ -15,7 +15,7 @@ func init() {
 		panic(fmt.Errorf("flag 'home' should be required: %w", err))
 	}
 
-	pruneCmd.Flags().Int64Var(&untilHeight, "until-height", 0, "prune blocks until specified height (excluding)")
+	pruneCmd.Flags().Int64Var(&untilHeight, "until-height", 0, "prune until specified height (excluding)")
 	if err := pruneCmd.MarkFlagRequired("until-height"); err != nil {
 		panic(fmt.Errorf("flag 'until-height' should be required: %w", err))
 	}

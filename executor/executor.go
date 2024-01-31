@@ -101,9 +101,11 @@ func (e *Executor) PruneData(homePath string, pruneHeight int, statePruning bool
 	}
 	err := store.Prune(homePath, int64(pruneHeight)-1, statePruning, e.Logger)
 	if err != nil {
-		e.Logger.Error("could not prune blocks, exiting")
+		e.Logger.Error("could not prune, exiting")
 		return err
 	}
+
+	time.Sleep(time.Second * time.Duration(10))
 
 	if e.Process.GhostMode {
 		process, err := node.StartGhostNode(e.Cfg, e.Logger, &e.Process, true, flags)
@@ -113,7 +115,7 @@ func (e *Executor) PruneData(homePath string, pruneHeight int, statePruning bool
 			if process != nil && process.Pid > 0 {
 				e.Process.Id = process.Pid
 				e.Process.GhostMode = true
-				e.Logger.Info("node started in GhostMode after pruning blocks")
+				e.Logger.Info("node started in GhostMode after pruning")
 			} else {
 				return fmt.Errorf("enabling Ghost Mode failed: process is not defined")
 			}
@@ -126,7 +128,7 @@ func (e *Executor) PruneData(homePath string, pruneHeight int, statePruning bool
 			if process != nil && process.Pid > 0 {
 				e.Process.Id = process.Pid
 				e.Process.GhostMode = false
-				e.Logger.Info("Node started in Normal Mode after pruning blocks", "pId", process.Pid)
+				e.Logger.Info("Node started in Normal Mode after pruning", "pId", process.Pid)
 			} else {
 				return fmt.Errorf("GhostMode disabling failed: process is not defined")
 			}
