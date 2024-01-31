@@ -130,20 +130,20 @@ var startCmd = &cobra.Command{
 						if nodeHeight < poolHeight {
 							pruneHeight = nodeHeight
 						}
-						logger.Info("pruning blocks after node shutdown", "until-height", pruneHeight)
+						logger.Info("pruning after node shutdown", "until-height", pruneHeight)
 
 						err = e.PruneData(supervysorConfig.HomePath, pruneHeight-1, supervysorConfig.StatePruning, binaryFlags)
 						if err != nil {
-							logger.Error("could not prune blocks", "err", err)
+							logger.Error("could not prune", "err", err)
 							return err
 						}
 					} else {
 						if nodeHeight < poolHeight {
-							logger.Info("pruning blocks after node shutdown", "until-height", nodeHeight)
+							logger.Info("pruning after node shutdown", "until-height", nodeHeight)
 
 							err = e.PruneData(supervysorConfig.HomePath, nodeHeight-1, supervysorConfig.StatePruning, binaryFlags)
 							if err != nil {
-								logger.Error("could not prune blocks", "err", err)
+								logger.Error("could not prune", "err", err)
 								return err
 							}
 						}
