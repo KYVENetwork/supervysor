@@ -22,6 +22,8 @@ func init() {
 
 	pruneCmd.Flags().BoolVar(&statePruning, "state-pruning", true, "enable state pruning")
 
+	startCmd.Flags().BoolVar(&forceCompact, "force-compact", false, "prune with ForceCompact enabled")
+
 	pruneCmd.Flags().BoolVar(&optOut, "opt-out", false, "disable the collection of anonymous usage data")
 }
 
@@ -31,7 +33,7 @@ var pruneCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		utils.TrackPruneEvent(optOut)
 
-		if err := store.Prune(home, untilHeight, statePruning, logger); err != nil {
+		if err := store.Prune(home, untilHeight, statePruning, forceCompact, logger); err != nil {
 			logger.Error(err.Error())
 		}
 	},
