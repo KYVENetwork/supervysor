@@ -22,7 +22,7 @@ func init() {
 
 	pruneCmd.Flags().BoolVar(&statePruning, "state-pruning", true, "enable state pruning")
 
-	startCmd.Flags().BoolVar(&forceCompact, "force-compact", false, "prune with ForceCompact enabled")
+	pruneCmd.Flags().BoolVar(&forceCompact, "force-compact", false, "prune with ForceCompact enabled")
 
 	pruneCmd.Flags().BoolVar(&optOut, "opt-out", false, "disable the collection of anonymous usage data")
 }

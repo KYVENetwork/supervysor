@@ -53,7 +53,7 @@ var startCmd = &cobra.Command{
 			return err
 		}
 
-		if statePruning == false {
+		if !statePruning {
 			supervysorConfig.StatePruning = false
 		}
 
