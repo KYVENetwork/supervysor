@@ -22,6 +22,7 @@ var (
 	cfgFlag         string
 	chainId         string
 	config          string
+	forceCompact    bool
 	home            string
 	metrics         bool
 	metricsPort     int

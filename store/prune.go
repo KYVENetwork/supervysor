@@ -9,10 +9,15 @@ import (
 	"cosmossdk.io/log"
 )
 
-func Prune(home string, untilHeight int64, statePruning bool, logger log.Logger) error {
+func Prune(home string, untilHeight int64, statePruning, forceCompact bool, logger log.Logger) error {
 	config, err := utils.LoadConfig(home)
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
+	}
+
+	if !forceCompact {
+		logger.Info("prune without ForceCompact")
+		return PruneAnyDB(home, untilHeight, statePruning, logger)
 	}
 
 	if strings.ToLower(config.DBBackend) == "goleveldb" {

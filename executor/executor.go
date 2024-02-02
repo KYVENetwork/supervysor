@@ -94,18 +94,18 @@ func (e *Executor) EnableNormalMode(flags string) error {
 	return nil
 }
 
-func (e *Executor) PruneData(homePath string, pruneHeight int, statePruning bool, flags string) error {
+func (e *Executor) PruneData(homePath string, pruneHeight int, statePruning, forceCompact bool, flags string) error {
 	if err := e.Shutdown(); err != nil {
 		e.Logger.Error("could not shutdown node process", "err", err)
 		return err
 	}
-	err := store.Prune(homePath, int64(pruneHeight)-1, statePruning, e.Logger)
+	err := store.Prune(homePath, int64(pruneHeight)-1, statePruning, forceCompact, e.Logger)
 	if err != nil {
 		e.Logger.Error("could not prune, exiting")
 		return err
 	}
 
-	time.Sleep(time.Second * time.Duration(10))
+	time.Sleep(time.Second * time.Duration(30))
 
 	if e.Process.GhostMode {
 		process, err := node.StartGhostNode(e.Cfg, e.Logger, &e.Process, true, flags)

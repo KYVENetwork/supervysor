@@ -22,6 +22,8 @@ func init() {
 
 	startCmd.Flags().BoolVar(&statePruning, "state-pruning", true, "enable state pruning")
 
+	startCmd.Flags().BoolVar(&forceCompact, "force-compact", false, "prune with ForceCompact enabled")
+
 	startCmd.Flags().StringVar(&binaryFlags, "flags", "", "flags for the underlying binary (e.g. '--address, ')")
 
 	startCmd.Flags().BoolVar(&optOut, "opt-out", false, "disable the collection of anonymous usage data")
@@ -49,6 +51,10 @@ var startCmd = &cobra.Command{
 		if err != nil {
 			logger.Error("could not load config", "err", err)
 			return err
+		}
+
+		if !statePruning {
+			supervysorConfig.StatePruning = false
 		}
 
 		utils.TrackStartEvent(supervysorConfig.ChainId, optOut)
@@ -132,7 +138,7 @@ var startCmd = &cobra.Command{
 						}
 						logger.Info("pruning after node shutdown", "until-height", pruneHeight)
 
-						err = e.PruneData(supervysorConfig.HomePath, pruneHeight-1, supervysorConfig.StatePruning, binaryFlags)
+						err = e.PruneData(supervysorConfig.HomePath, pruneHeight-1, supervysorConfig.StatePruning, forceCompact, binaryFlags)
 						if err != nil {
 							logger.Error("could not prune", "err", err)
 							return err
@@ -141,7 +147,7 @@ var startCmd = &cobra.Command{
 						if nodeHeight < poolHeight {
 							logger.Info("pruning after node shutdown", "until-height", nodeHeight)
 
-							err = e.PruneData(supervysorConfig.HomePath, nodeHeight-1, supervysorConfig.StatePruning, binaryFlags)
+							err = e.PruneData(supervysorConfig.HomePath, nodeHeight-1, supervysorConfig.StatePruning, forceCompact, binaryFlags)
 							if err != nil {
 								logger.Error("could not prune", "err", err)
 								return err
